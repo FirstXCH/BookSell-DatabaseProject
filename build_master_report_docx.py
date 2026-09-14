@@ -135,7 +135,7 @@ def add_code_block(doc, code_text):
     
     spacer = doc.add_paragraph()
     spacer.paragraph_format.space_before = Pt(0)
-    spacer.paragraph_format.space_after = Pt(4)
+    spacer.paragraph_format.space_after = Pt(2)
 
 def style_table(tbl, col_widths, headers, data, header_bg="1E3A8A"):
     num_cols = len(col_widths)
@@ -246,22 +246,23 @@ def style_table(tbl, col_widths, headers, data, header_bg="1E3A8A"):
             tcW = parse_xml(f'<w:tcW {nsdecls("w")} w:w="{int(w * 1440)}" w:type="dxa"/>')
             tcPr.append(tcW)
 
-def add_figure(doc, img_path, caption_text, width_inches=5.6):
+def add_figure(doc, img_path, caption_text, width_inches=4.7):
     if not os.path.exists(img_path):
         return
     p_img = doc.add_paragraph()
     p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_img.paragraph_format.space_before = Pt(8)
-    p_img.paragraph_format.space_after = Pt(4)
+    p_img.paragraph_format.space_before = Pt(4)
+    p_img.paragraph_format.space_after = Pt(2)
+    p_img.paragraph_format.keep_with_next = True
     run_img = p_img.add_run()
     run_img.add_picture(img_path, width=Inches(width_inches))
     
     p_cap = doc.add_paragraph()
     p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_cap.paragraph_format.space_before = Pt(2)
-    p_cap.paragraph_format.space_after = Pt(12)
+    p_cap.paragraph_format.space_after = Pt(8)
     run_cap = p_cap.add_run(caption_text)
-    set_run_font(run_cap, 'TH Sarabun New', size_pt=12.5, bold=True, color_rgb=RGBColor(71, 85, 105))
+    set_run_font(run_cap, 'TH Sarabun New', size_pt=11.5, bold=True, color_rgb=RGBColor(71, 85, 105))
 
 def setup_headers_and_footers(doc):
     """Setup running header and page numbering footer on pages 2+."""
@@ -327,60 +328,67 @@ def main():
     # =========================================================================
     p_logo = doc.add_paragraph()
     p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_logo.paragraph_format.space_before = Pt(8)
-    p_logo.paragraph_format.space_after = Pt(14)
+    p_logo.paragraph_format.space_before = Pt(0)
+    p_logo.paragraph_format.space_after = Pt(6)
     
     if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Inches(1.75))
+        p_logo.add_run().add_picture(logo_path, width=Inches(1.35))
     else:
         r = p_logo.add_run("[ตราสัญลักษณ์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน]")
         set_run_font(r, 'TH Sarabun New', 16, bold=True)
 
     p_rep = doc.add_paragraph()
     p_rep.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_rep.paragraph_format.space_after = Pt(4)
+    p_rep.paragraph_format.space_before = Pt(0)
+    p_rep.paragraph_format.space_after = Pt(2)
     r = p_rep.add_run("รายงานโครงงานพัฒนาระบบฐานข้อมูล (Mini Project Report)")
-    set_run_font(r, 'TH Sarabun New', size_pt=22, bold=True, color_rgb=RGBColor(30, 58, 138))
+    set_run_font(r, 'TH Sarabun New', size_pt=20, bold=True, color_rgb=RGBColor(30, 58, 138))
 
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_title.paragraph_format.space_after = Pt(20)
+    p_title.paragraph_format.space_before = Pt(0)
+    p_title.paragraph_format.space_after = Pt(10)
     r = p_title.add_run("ระบบร้านขายหนังสือและอีบุ๊กออนไลน์\n(Lampara Books E-Book Store)")
-    set_run_font(r, 'TH Sarabun New', size_pt=26, bold=True, color_rgb=RGBColor(180, 83, 9))
+    set_run_font(r, 'TH Sarabun New', size_pt=24, bold=True, color_rgb=RGBColor(180, 83, 9))
 
     p_course = doc.add_paragraph()
     p_course.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_course.paragraph_format.space_after = Pt(30)
+    p_course.paragraph_format.space_before = Pt(0)
+    p_course.paragraph_format.space_after = Pt(14)
     r = p_course.add_run(
         "รายวิชา: [31-407-102-301] ระบบฐานข้อมูล (Database Systems)\n"
         "หลักสูตรวิศวกรรมคอมพิวเตอร์ (ECP) ชั้นปีที่ 3 ห้อง ECP 321\n"
         "คณะวิศวกรรมศาสตร์และเทคโนโลยี มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน\n"
         "ภาคการศึกษาที่ 1 ปีการศึกษา 2569"
     )
-    set_run_font(r, 'TH Sarabun New', size_pt=15.5, color_rgb=RGBColor(71, 85, 105))
+    set_run_font(r, 'TH Sarabun New', size_pt=14.5, color_rgb=RGBColor(71, 85, 105))
 
     p_adviser = doc.add_paragraph()
     p_adviser.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_adviser.paragraph_format.space_after = Pt(24)
+    p_adviser.paragraph_format.space_before = Pt(0)
+    p_adviser.paragraph_format.space_after = Pt(12)
     r1 = p_adviser.add_run("อาจารย์ผู้สอน\n")
-    set_run_font(r1, 'TH Sarabun New', size_pt=16, bold=True)
+    set_run_font(r1, 'TH Sarabun New', size_pt=15, bold=True)
     r2 = p_adviser.add_run("อาจารย์ประภาส ผ่องสนาม")
-    set_run_font(r2, 'TH Sarabun New', size_pt=18, bold=True, color_rgb=RGBColor(15, 23, 42))
+    set_run_font(r2, 'TH Sarabun New', size_pt=17, bold=True, color_rgb=RGBColor(15, 23, 42))
 
     p_author = doc.add_paragraph()
     p_author.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_author.paragraph_format.space_after = Pt(36)
+    p_author.paragraph_format.space_before = Pt(0)
+    p_author.paragraph_format.space_after = Pt(14)
     r1 = p_author.add_run("จัดทำโดย\n")
-    set_run_font(r1, 'TH Sarabun New', size_pt=16, bold=True)
+    set_run_font(r1, 'TH Sarabun New', size_pt=15, bold=True)
     r2 = p_author.add_run("นายกานต์นิธิ ยะโส\n")
-    set_run_font(r2, 'TH Sarabun New', size_pt=18, bold=True, color_rgb=RGBColor(15, 23, 42))
+    set_run_font(r2, 'TH Sarabun New', size_pt=17, bold=True, color_rgb=RGBColor(15, 23, 42))
     r3 = p_author.add_run("รหัสนักศึกษา: 67332110223-9  กลุ่มเรียน: ECP3N")
-    set_run_font(r3, 'TH Sarabun New', size_pt=15)
+    set_run_font(r3, 'TH Sarabun New', size_pt=14)
 
     p_foot = doc.add_paragraph()
     p_foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_foot.paragraph_format.space_before = Pt(0)
+    p_foot.paragraph_format.space_after = Pt(0)
     r = p_foot.add_run("ภาควิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์และเทคโนโลยี\nมหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน นครราชสีมา")
-    set_run_font(r, 'TH Sarabun New', size_pt=14, color_rgb=RGBColor(100, 116, 139))
+    set_run_font(r, 'TH Sarabun New', size_pt=13, color_rgb=RGBColor(100, 116, 139))
 
     doc.add_page_break()
 
@@ -849,7 +857,7 @@ ORDER BY total_spent DESC;"""
     ]
     tbl_r4 = doc.add_table(rows=1, cols=7)
     style_table(tbl_r4, [0.9, 1.3, 0.7, 0.7, 0.9, 0.8, 0.9], r4_headers, r4_data, header_bg="4338CA")
-    add_styled_paragraph(doc, "• ผลการวิเคราะห์: สามารถระบุกลุ่มลูกค้า VIP เพื่อจัดทำระบบสะสมแต้ม หรือมอบคูปองส่วนลดพิเศษเพื่อกระตุ้นการซื้อซ้ำได้อย่างแม่นยำ", italic=True, space_after=12)
+    add_styled_paragraph(doc, "• ผลการวิเคราะห์: สามารถระบุกลุ่มลูกค้า VIP เพื่อจัดทำระบบสะสมแต้ม หรือมอบคูปองส่วนลดพิเศษเพื่อกระตุ้นการซื้อซ้ำได้อย่างแม่นยำ", italic=True, space_after=6)
 
     doc.add_page_break()
 
@@ -874,7 +882,7 @@ ORDER BY total_spent DESC;"""
     add_styled_paragraph(doc,
         "ตามข้อกำหนดด้านความปลอดภัย บัญชีที่เป็นลูกค้าทั่วไป (Role = Customer) จะไม่สามารถมองเห็นปุ่ม \"หลังบ้าน\" บนแถบเมนูหลักของเว็บไซต์ได้ เพื่อป้องกันความสับสนและการพยายามเข้าถึงส่วนที่ไม่ได้รับอนุญาต ดังแสดงในภาพที่ 5.3"
     )
-    add_figure(doc, os.path.join(images_dir, "customer_header.png"), "ภาพที่ 5.3: แถบเมนูด้านบนของผู้ใช้ทั่วไป (Customer) ที่ซ่อนปุ่ม 'หลังบ้าน' อย่างมิดชิด")
+    add_figure(doc, os.path.join(images_dir, "customer_header.png"), width_inches=4.8, caption_text= "ภาพที่ 5.3: แถบเมนูด้านบนของผู้ใช้ทั่วไป (Customer) ที่ซ่อนปุ่ม 'หลังบ้าน' อย่างมิดชิด")
 
     add_styled_paragraph(doc,
         "ยิ่งไปกว่านั้น หากผู้ใช้ทั่วไปพยายามพิมพ์ URL ตรงเข้าไปยังหน้า /admin หรือหน้ารายงาน /admin/reports ระบบมี Route Guard ทำการดักจับและส่งกลับเป็นหน้า 403 Forbidden Access Denied ทันที เพื่อป้องกันการข้ามสิทธิ์อย่างเด็ดขาด ดังแสดงในภาพที่ 5.4"
@@ -884,7 +892,7 @@ ORDER BY total_spent DESC;"""
     add_styled_paragraph(doc,
         "ในทางกลับกัน เมื่อเข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ (Role = Admin) แถบเมนูด้านบนจะแสดงปุ่ม \"หลังบ้าน (Admin)\" พร้อมไอคอนอย่างเด่นชัด ทำให้ผู้ดูแลระบบสามารถเข้าถึงเมนูจัดการร้านค้าได้อย่างสะดวก ดังแสดงในภาพที่ 5.5"
     )
-    add_figure(doc, os.path.join(images_dir, "admin_header.png"), "ภาพที่ 5.5: แถบเมนูด้านบนของสิทธิ์ผู้ดูแลระบบ (Admin) ที่แสดงปุ่ม 'หลังบ้าน' พร้อมสถานะสิทธิ์")
+    add_figure(doc, os.path.join(images_dir, "admin_header.png"), width_inches=4.8, caption_text= "ภาพที่ 5.5: แถบเมนูด้านบนของสิทธิ์ผู้ดูแลระบบ (Admin) ที่แสดงปุ่ม 'หลังบ้าน' พร้อมสถานะสิทธิ์")
 
     add_styled_heading(doc, "5.4 การจัดการหมวดหมู่และการจัดการร้านค้าหลังบ้าน", level=2)
     add_styled_paragraph(doc,
