@@ -9,7 +9,7 @@
 * **อาจารย์ผู้สอน:** อาจารย์ประภาส ผ่องสนาม (ประเภททฤษฎี)
 * **ชื่อโครงงาน:** ระบบร้านขายหนังสือและอีบุ๊กออนไลน์ (Lampara Books Digital Store)
 * **ผู้จัดทำและผู้นำเสนอ:** นายกานต์นิธิ ยะโส รหัสนักศึกษา `67332110223-9` กลุ่ม ECP3N
-* **🌐 เว็บไซต์จริงบน Vercel (Live Demo):** [https://project-tau-blond-20.vercel.app](https://project-tau-blond-20.vercel.app)
+* **🌐 เว็บไซต์จริงบน Vercel (Live Demo):** [https://lampara-books.vercel.app](https://lampara-books.vercel.app) *(สำรอง: [https://booksell-database.vercel.app](https://booksell-database.vercel.app))*
 * **โครงงานที่เชื่อมโยง (SWE Project):** โครงงานระบบ Inventory System ในรายวิชาวิศวกรรมซอฟต์แวร์ (อ.ดร.ปิยะนุช ตั้งกิตติพล) จัดเก็บอยู่ที่ Repository: [https://github.com/FirstXCH/team-13-inventory](https://github.com/FirstXCH/team-13-inventory)
 
 ---
