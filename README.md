@@ -61,17 +61,23 @@
 
 ### 2.1 แผนภาพความสัมพันธ์เอนทิตี (Entity-Relationship Diagram: ERD)
 
+> 💡 **หมายเหตุสำคัญเกี่ยวกับการดูเส้นเชื่อมโยง (Field-to-Field Mapping):**
+> 1. **รูปภาพแผนผังความคมชัดสูงระดับฟิลด์คอลัมน์ (รูปด้านล่างนี้):** เส้นเชื่อมโยงถูกวาดแบบเจาะจง **จากช่อง Primary Key (PK) เข้าหาช่อง Foreign Key (FK)** ของแต่ละคอลัมน์โดยตรง 100% พร้อมระบุอัตราส่วนความสัมพันธ์ (`1 : N`, `1 : 1`) ชัดเจน ไม่มีการลากตัดกรอบข้อมูล
+> 2. **โค้ด Mermaid ด้านล่าง:** เป็นโค้ดมาตรฐานของ Markdown ซึ่งระบบแสดงผลของ Mermaid จะโยงเส้นเข้าหากรอบตาราง (Entity box) ดังนั้นจึงได้ **ปรับปรุงป้ายกำกับบนเส้นทั้งหมดให้ระบุชื่อคอลัมน์คู่เชื่อมโยงอย่างชัดเจน** เช่น `"id -> role_id (FK)"`, `"id -> user_id (FK)"` เป็นต้น
+
+![แผนผัง ERD เชื่อมโยงระดับฟิลด์คอลัมน์ (PK-to-FK Field Mapping)](docs/images/erd_column_mapped.png)
+
 ```mermaid
 erDiagram
-    ROLES ||--o{ USERS : "defines_role"
-    USERS ||--o{ ORDERS : "places"
-    AUTHORS ||--o{ BOOKS : "writes"
-    CATEGORIES ||--o{ BOOKS : "classifies"
-    BOOKS ||--o{ ORDER_ITEMS : "ordered_in"
-    ORDERS ||--|{ ORDER_ITEMS : "contains"
-    ORDERS ||--|| PAYMENTS : "paid_by"
-    ORDERS ||--o{ DOWNLOAD_LINKS : "grants"
-    BOOKS ||--o{ DOWNLOAD_LINKS : "target_file"
+    ROLES ||--o{ USERS : "id -> role_id (FK)"
+    USERS ||--o{ ORDERS : "id -> user_id (FK)"
+    AUTHORS ||--o{ BOOKS : "id -> author_id (FK)"
+    CATEGORIES ||--o{ BOOKS : "id -> category_id (FK)"
+    ORDERS ||--|{ ORDER_ITEMS : "id -> order_id (FK)"
+    BOOKS ||--o{ ORDER_ITEMS : "id -> book_id (FK)"
+    ORDERS ||--|| PAYMENTS : "id -> order_id (FK,UK 1:1)"
+    ORDERS ||--o{ DOWNLOAD_LINKS : "id -> order_id (FK)"
+    BOOKS ||--o{ DOWNLOAD_LINKS : "id -> book_id (FK)"
 
     ROLES {
         int id PK
@@ -82,7 +88,7 @@ erDiagram
 
     USERS {
         int id PK
-        int role_id FK
+        int role_id FK "FK -> roles.id"
         varchar email UK
         varchar password_hash
         varchar full_name
@@ -111,8 +117,8 @@ erDiagram
     BOOKS {
         int id PK
         varchar title
-        int author_id FK
-        int category_id FK
+        int author_id FK "FK -> authors.id"
+        int category_id FK "FK -> categories.id"
         decimal price "CHECK >= 0"
         varchar cover_color
         varchar cover_image
@@ -130,7 +136,7 @@ erDiagram
 
     ORDERS {
         int id PK
-        int user_id FK "nullable for guest"
+        int user_id FK "FK -> users.id (nullable for guest)"
         varchar checkout_email
         varchar checkout_name
         decimal total "CHECK >= 0"
@@ -142,8 +148,8 @@ erDiagram
 
     ORDER_ITEMS {
         int id PK
-        int order_id FK
-        int book_id FK
+        int order_id FK "FK -> orders.id"
+        int book_id FK "FK -> books.id"
         varchar title
         int quantity "CHECK > 0"
         decimal price_at_time "CHECK >= 0"
@@ -152,7 +158,7 @@ erDiagram
 
     PAYMENTS {
         int id PK
-        int order_id FK,UK "1 to 1"
+        int order_id FK,UK "FK,UK -> orders.id (1 to 1)"
         varchar payment_method "PromptPay | BankTransfer"
         varchar slip_url "mock slip"
         decimal amount "CHECK >= 0"
@@ -164,28 +170,29 @@ erDiagram
 
     DOWNLOAD_LINKS {
         int id PK
-        varchar token UK
-        int order_id FK
-        int book_id FK
+        varchar token UK "UUID"
+        int order_id FK "FK -> orders.id"
+        int book_id FK "FK -> books.id"
         int download_count "CHECK >= 0"
-        int max_downloads "CHECK > 0"
+        int max_downloads "CHECK > 0 (DEFAULT 5)"
         timestamptz expires_at
         timestamptz created_at
     }
 ```
 
-### 2.2 ตารางสรุปความสัมพันธ์และภาระหน้าที่ (Cardinality & Roles)
+### 2.2 ตารางสรุปการเชื่อมโยงคีย์และความสัมพันธ์ (PK-to-FK Mapping Reference)
 
-| คู่ความสัมพันธ์ (Relationship) | อัตราส่วน (Cardinality) | คำอธิบายเชิงธุรกิจ (Business Rule) |
-|---|:---:|---|
-| `roles` ➔ `users` | **1 : N** | บทบาท 1 บทบาท (เช่น Customer หรือ Admin) สามารถมีผู้ใช้งานสังกัดได้หลายคน แต่ผู้ใช้แต่ละคนมีบทบาทหลักได้ 1 บทบาท |
-| `users` ➔ `orders` | **1 : N** | สมาชิก 1 คน สามารถสร้างคำสั่งซื้อได้หลายครั้งตลอดชีพ (Customer Lifetime Orders) |
-| `authors` ➔ `books` | **1 : N** | นักเขียน 1 ท่าน สามารถมีผลงานหนังสือในร้านได้หลายเล่ม โดยหนังสือแต่ละเล่มอ้างอิงถึงผู้แต่งหลัก 1 คน |
-| `categories` ➔ `books` | **1 : N** | หมวดหมู่ 1 หมวดหมู่ บรรจุหนังสือได้หลายเล่ม |
-| `orders` ➔ `order_items` | **1 : N** | คำสั่งซื้อ 1 ใบ บรรจุรายการหนังสือได้ตั้งแต่ 1 เล่มขึ้นไป (Order Detail) |
-| `books` ➔ `order_items` | **1 : N** | หนังสือ 1 เล่ม สามารถปรากฏอยู่ในรายการสั่งซื้อของลูกค้าหลายๆ ออเดอร์ได้ |
-| `orders` ➔ `payments` | **1 : 1** | คำสั่งซื้อ 1 ใบ มีรายการบันทึกการชำระเงินจำลองผูกติดกันได้ 1 รายการเท่านั้น (`order_id` เป็น UNIQUE) |
-| `orders` ➔ `download_links` | **1 : N** | คำสั่งซื้อที่ได้รับการอนุมัติแล้ว จะสร้างลิงก์ดาวน์โหลดที่มีโทเค็นความปลอดภัยให้ตามจำนวนหนังสือในคำสั่งซื้อนั้น |
+| ลำดับ | ตารางต้นทาง (Parent / PK) | คอลัมน์ PK | ตารางปลายทาง (Child / FK) | คอลัมน์ FK | อัตราส่วน (Cardinality) | กฎเมื่อลบข้อมูล (ON DELETE) | คำอธิบายเชิงธุรกิจ (Business Rule) |
+|:---:|---|---|---|---|:---:|:---:|---|
+| 1 | **ROLES** | `id` | **USERS** | `role_id` | **1 : N** | `RESTRICT` | กำหนดบทบาทผู้ใช้ (Admin หรือ Customer) แต่ละคนมี 1 บทบาท |
+| 2 | **USERS** | `id` | **ORDERS** | `user_id` | **1 : N** | `SET NULL` | ลูกค้าสมาชิก 1 คน สั่งซื้อได้หลายครั้ง (ถ้าเป็น Guest จะเป็น `NULL`) |
+| 3 | **ORDERS** | `id` | **PAYMENTS** | `order_id` | **1 : 1** | `CASCADE` | คำสั่งซื้อ 1 ใบ ผูกติดกับบันทึกการชำระเงิน 1 รายการ (`order_id` เป็น UNIQUE) |
+| 4 | **AUTHORS** | `id` | **BOOKS** | `author_id` | **1 : N** | `RESTRICT` | นักเขียน 1 ท่าน สามารถมีผลงานหนังสือในระบบได้หลายเล่ม |
+| 5 | **CATEGORIES** | `id` | **BOOKS** | `category_id` | **1 : N** | `RESTRICT` | หมวดหมู่ 1 หมวดหมู่ บรรจุหนังสือได้หลายเล่ม |
+| 6 | **ORDERS** | `id` | **ORDER_ITEMS** | `order_id` | **1 : N** | `CASCADE` | คำสั่งซื้อ 1 ใบ ประกอบด้วยรายการสินค้าหนังสือได้หลายรายการ |
+| 7 | **BOOKS** | `id` | **ORDER_ITEMS** | `book_id` | **1 : N** | `RESTRICT` | หนังสือ 1 เล่ม ปรากฏในรายการสั่งซื้อของลูกค้าได้หลายคำสั่งซื้อ |
+| 8 | **ORDERS** | `id` | **DOWNLOAD_LINKS** | `order_id` | **1 : N** | `CASCADE` | คำสั่งซื้อที่ชำระเงินแล้วจะออกลิงก์ดาวน์โหลดตามรายการที่สั่ง |
+| 9 | **BOOKS** | `id` | **DOWNLOAD_LINKS** | `book_id` | **1 : N** | `CASCADE` | ลิงก์ดาวน์โหลดอ้างอิงไฟล์หนังสือเป้าหมายที่ลูกค้ามีสิทธิ์โหลด |
 
 ---
 

@@ -1,0 +1,350 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1250" width="1920" height="1250">
+<defs>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&amp;family=Noto+Sans+Thai:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Noto Sans Thai', Roboto, sans-serif; }
+    .code { font-family: 'Fira Code', Consolas, Monaco, monospace; }
+  </style>
+
+  <!-- Gradients -->
+  <linearGradient id="bg_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#070b14"/>
+    <stop offset="50%" stop-color="#0b1120"/>
+    <stop offset="100%" stop-color="#0d1527"/>
+  </linearGradient>
+
+  <linearGradient id="hdr_blue" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#1e3a8a"/><stop offset="100%" stop-color="#3b82f6"/>
+  </linearGradient>
+  <linearGradient id="hdr_emerald" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#064e3b"/><stop offset="100%" stop-color="#059669"/>
+  </linearGradient>
+  <linearGradient id="hdr_amber" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#78350f"/><stop offset="100%" stop-color="#d97706"/>
+  </linearGradient>
+  <linearGradient id="hdr_rose" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#831843"/><stop offset="100%" stop-color="#db2777"/>
+  </linearGradient>
+  <linearGradient id="hdr_teal" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#134e4a"/><stop offset="100%" stop-color="#0d9488"/>
+  </linearGradient>
+  <linearGradient id="hdr_indigo" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#312e81"/><stop offset="100%" stop-color="#6366f1"/>
+  </linearGradient>
+  <linearGradient id="hdr_violet" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#4c1d95"/><stop offset="100%" stop-color="#7c3aed"/>
+  </linearGradient>
+  <linearGradient id="hdr_orange" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#7c2d12"/><stop offset="100%" stop-color="#ea580c"/>
+  </linearGradient>
+
+  <!-- Markers -->
+  <marker id="arrow_cyan" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M1,2 L8,5 L1,8 L3,5 Z" fill="#38bdf8"/>
+  </marker>
+  <marker id="arrow_emerald" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M1,2 L8,5 L1,8 L3,5 Z" fill="#34d399"/>
+  </marker>
+  <marker id="arrow_amber" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M1,2 L8,5 L1,8 L3,5 Z" fill="#fbbf24"/>
+  </marker>
+  <marker id="arrow_pink" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M1,2 L8,5 L1,8 L3,5 Z" fill="#f472b6"/>
+  </marker>
+  <marker id="arrow_teal" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M1,2 L8,5 L1,8 L3,5 Z" fill="#2dd4bf"/>
+  </marker>
+  <marker id="arrow_orange" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M1,2 L8,5 L1,8 L3,5 Z" fill="#fb923c"/>
+  </marker>
+  <marker id="arrow_indigo" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M1,2 L8,5 L1,8 L3,5 Z" fill="#818cf8"/>
+  </marker>
+
+  <marker id="dot_start" markerWidth="12" markerHeight="12" refX="6" refY="6">
+    <circle cx="6" cy="6" r="4.5" fill="#38bdf8" stroke="#ffffff" stroke-width="1.8"/>
+  </marker>
+  <marker id="dot_amber" markerWidth="12" markerHeight="12" refX="6" refY="6">
+    <circle cx="6" cy="6" r="4.5" fill="#fbbf24" stroke="#ffffff" stroke-width="1.8"/>
+  </marker>
+  <marker id="dot_pink" markerWidth="12" markerHeight="12" refX="6" refY="6">
+    <circle cx="6" cy="6" r="4.5" fill="#f472b6" stroke="#ffffff" stroke-width="1.8"/>
+  </marker>
+  <marker id="dot_teal" markerWidth="12" markerHeight="12" refX="6" refY="6">
+    <circle cx="6" cy="6" r="4.5" fill="#2dd4bf" stroke="#ffffff" stroke-width="1.8"/>
+  </marker>
+  <marker id="dot_emerald" markerWidth="12" markerHeight="12" refX="6" refY="6">
+    <circle cx="6" cy="6" r="4.5" fill="#34d399" stroke="#ffffff" stroke-width="1.8"/>
+  </marker>
+  <marker id="dot_orange" markerWidth="12" markerHeight="12" refX="6" refY="6">
+    <circle cx="6" cy="6" r="4.5" fill="#fb923c" stroke="#ffffff" stroke-width="1.8"/>
+  </marker>
+
+  <!-- Shadows -->
+  <filter id="table_shadow" x="-5%" y="-5%" width="112%" height="112%">
+    <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.6"/>
+  </filter>
+</defs>
+
+<!-- Solid Canvas Background -->
+<rect width="100%" height="100%" fill="url(#bg_grad)"/>
+
+<!-- Grid decoration lines -->
+<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.6" stroke-opacity="0.4"/>
+</pattern>
+<rect width="100%" height="100%" fill="url(#grid)"/>
+
+<!-- Title Banner -->
+<g transform="translate(925, 45)">
+  <rect x="-420" y="-30" width="840" height="60" rx="30" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+  <text x="0" y="-2" fill="#38bdf8" font-size="18" font-weight="700" text-anchor="middle" letter-spacing="1">
+    LAMPARA BOOKS — 3NF PHYSICAL ERD (FIELD-TO-FIELD MAPPING)
+  </text>
+  <text x="0" y="18" fill="#94a3b8" font-size="12" text-anchor="middle">
+    ลูกศรเชื่อมโยงตรงจาก Primary Key (PK) เข้าหา Foreign Key (FK) ระดับคอลัมน์ แม่นยำตาม 3NF ครบทั้ง 9 ตาราง
+  </text>
+</g>
+
+    <!-- Table: roles -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="70" y="110" width="380" height="146" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="70" y="110" width="380" height="36" rx="10" fill="url(#hdr_blue)"/>
+      <rect x="70" y="138" width="380" height="8" fill="url(#hdr_blue)"/>
+      
+      <!-- Header text -->
+      <text x="86" y="133" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">ROLES</text>
+      <rect x="382" y="119" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="408" y="132" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="71" y="146" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="163" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="175" y="163" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="408" y="151" width="30" height="16" rx="4" fill="#d97706"/><text x="423" y="163" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="71" y="172" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="189" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="189" fill="#cbd5e1" font-size="11" font-weight="500">name</text><text class="code" x="305" y="189" fill="#64748b" font-size="9.5">Admin|Cust</text><rect x="408" y="177" width="30" height="16" rx="4" fill="#475569"/><text x="423" y="189" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">UK</text><rect x="71" y="198" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="215" fill="#94a3b8" font-size="10.5">text</text><text class="code" x="175" y="215" fill="#cbd5e1" font-size="11" font-weight="500">description</text><rect x="71" y="224" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="241" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="175" y="241" fill="#cbd5e1" font-size="11" font-weight="500">created_at</text></g>
+
+    <!-- Table: users -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="70" y="270" width="380" height="302" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="70" y="270" width="380" height="36" rx="10" fill="url(#hdr_indigo)"/>
+      <rect x="70" y="298" width="380" height="8" fill="url(#hdr_indigo)"/>
+      
+      <!-- Header text -->
+      <text x="86" y="293" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">USERS</text>
+      <rect x="382" y="279" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="408" y="292" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="71" y="306" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="323" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="175" y="323" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="408" y="311" width="30" height="16" rx="4" fill="#d97706"/><text x="423" y="323" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="71" y="332" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="349" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="175" y="349" fill="#f1f5f9" font-size="11" font-weight="700">role_id</text><text class="code" x="305" y="349" fill="#64748b" font-size="9.5">-> roles.id</text><rect x="408" y="337" width="30" height="16" rx="4" fill="#0284c7"/><text x="423" y="349" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="71" y="358" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="375" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="375" fill="#cbd5e1" font-size="11" font-weight="500">email</text><rect x="408" y="363" width="30" height="16" rx="4" fill="#475569"/><text x="423" y="375" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">UK</text><rect x="71" y="384" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="401" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="401" fill="#cbd5e1" font-size="11" font-weight="500">password_hash</text><rect x="71" y="410" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="427" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="427" fill="#cbd5e1" font-size="11" font-weight="500">full_name</text><rect x="71" y="436" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="453" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="453" fill="#cbd5e1" font-size="11" font-weight="500">phone</text><rect x="71" y="462" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="479" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="479" fill="#cbd5e1" font-size="11" font-weight="500">bank_account_name</text><rect x="71" y="488" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="505" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="505" fill="#cbd5e1" font-size="11" font-weight="500">bank_account_no</text><rect x="71" y="514" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="531" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="531" fill="#cbd5e1" font-size="11" font-weight="500">bank_name</text><rect x="71" y="540" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="557" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="175" y="557" fill="#cbd5e1" font-size="11" font-weight="500">created_at</text></g>
+
+    <!-- Table: orders -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="70" y="600" width="380" height="250" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="70" y="600" width="380" height="36" rx="10" fill="url(#hdr_emerald)"/>
+      <rect x="70" y="628" width="380" height="8" fill="url(#hdr_emerald)"/>
+      
+      <!-- Header text -->
+      <text x="86" y="623" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">ORDERS</text>
+      <rect x="382" y="609" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="408" y="622" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="71" y="636" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="653" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="175" y="653" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="408" y="641" width="30" height="16" rx="4" fill="#d97706"/><text x="423" y="653" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="71" y="662" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="679" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="175" y="679" fill="#f1f5f9" font-size="11" font-weight="700">user_id</text><text class="code" x="305" y="679" fill="#64748b" font-size="9.5">-> users.id</text><rect x="408" y="667" width="30" height="16" rx="4" fill="#0284c7"/><text x="423" y="679" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="71" y="688" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="705" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="705" fill="#cbd5e1" font-size="11" font-weight="500">checkout_email</text><rect x="71" y="714" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="731" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="731" fill="#cbd5e1" font-size="11" font-weight="500">checkout_name</text><rect x="71" y="740" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="757" fill="#94a3b8" font-size="10.5">decimal</text><text class="code" x="175" y="757" fill="#cbd5e1" font-size="11" font-weight="500">total</text><text class="code" x="305" y="757" fill="#64748b" font-size="9.5">>= 0</text><rect x="71" y="766" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="783" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="783" fill="#cbd5e1" font-size="11" font-weight="500">status</text><text class="code" x="305" y="783" fill="#64748b" font-size="9.5">Pending|Conf</text><rect x="71" y="792" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="809" fill="#94a3b8" font-size="10.5">boolean</text><text class="code" x="175" y="809" fill="#cbd5e1" font-size="11" font-weight="500">email_sent</text><rect x="71" y="818" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="835" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="175" y="835" fill="#cbd5e1" font-size="11" font-weight="500">created_at</text></g>
+
+    <!-- Table: payments -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="70" y="880" width="380" height="224" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="70" y="880" width="380" height="36" rx="10" fill="url(#hdr_amber)"/>
+      <rect x="70" y="908" width="380" height="8" fill="url(#hdr_amber)"/>
+      
+      <!-- Header text -->
+      <text x="86" y="903" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">PAYMENTS</text>
+      <rect x="382" y="889" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="408" y="902" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="71" y="916" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="933" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="175" y="933" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="408" y="921" width="30" height="16" rx="4" fill="#d97706"/><text x="423" y="933" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="71" y="942" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="959" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="175" y="959" fill="#f1f5f9" font-size="11" font-weight="700">order_id</text><text class="code" x="305" y="959" fill="#64748b" font-size="9.5">-> orders.id (1:1)</text><rect x="408" y="947" width="30" height="16" rx="4" fill="#0284c7"/><text x="423" y="959" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="71" y="968" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="985" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="985" fill="#cbd5e1" font-size="11" font-weight="500">payment_method</text><text class="code" x="305" y="985" fill="#64748b" font-size="9.5">PromptPay</text><rect x="71" y="994" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="1011" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="1011" fill="#cbd5e1" font-size="11" font-weight="500">slip_url</text><rect x="71" y="1020" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="1037" fill="#94a3b8" font-size="10.5">decimal</text><text class="code" x="175" y="1037" fill="#cbd5e1" font-size="11" font-weight="500">amount</text><text class="code" x="305" y="1037" fill="#64748b" font-size="9.5">>= 0</text><rect x="71" y="1046" width="378" height="26" fill="#141e33"/><text class="code" x="84" y="1063" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="175" y="1063" fill="#cbd5e1" font-size="11" font-weight="500">status</text><text class="code" x="305" y="1063" fill="#64748b" font-size="9.5">Verified</text><rect x="71" y="1072" width="378" height="26" fill="#0f172a"/><text class="code" x="84" y="1089" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="175" y="1089" fill="#cbd5e1" font-size="11" font-weight="500">paid_at</text></g>
+
+    <!-- Table: authors -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="570" y="110" width="380" height="172" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="570" y="110" width="380" height="36" rx="10" fill="url(#hdr_rose)"/>
+      <rect x="570" y="138" width="380" height="8" fill="url(#hdr_rose)"/>
+      
+      <!-- Header text -->
+      <text x="586" y="133" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">AUTHORS</text>
+      <rect x="882" y="119" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="908" y="132" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="571" y="146" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="163" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="675" y="163" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="908" y="151" width="30" height="16" rx="4" fill="#d97706"/><text x="923" y="163" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="571" y="172" width="378" height="26" fill="#141e33"/><text class="code" x="584" y="189" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="675" y="189" fill="#cbd5e1" font-size="11" font-weight="500">name</text><rect x="571" y="198" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="215" fill="#94a3b8" font-size="10.5">text</text><text class="code" x="675" y="215" fill="#cbd5e1" font-size="11" font-weight="500">bio</text><rect x="571" y="224" width="378" height="26" fill="#141e33"/><text class="code" x="584" y="241" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="675" y="241" fill="#cbd5e1" font-size="11" font-weight="500">email</text><rect x="571" y="250" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="267" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="675" y="267" fill="#cbd5e1" font-size="11" font-weight="500">created_at</text></g>
+
+    <!-- Table: categories -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="570" y="320" width="380" height="172" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="570" y="320" width="380" height="36" rx="10" fill="url(#hdr_teal)"/>
+      <rect x="570" y="348" width="380" height="8" fill="url(#hdr_teal)"/>
+      
+      <!-- Header text -->
+      <text x="586" y="343" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">CATEGORIES</text>
+      <rect x="882" y="329" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="908" y="342" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="571" y="356" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="373" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="675" y="373" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="908" y="361" width="30" height="16" rx="4" fill="#d97706"/><text x="923" y="373" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="571" y="382" width="378" height="26" fill="#141e33"/><text class="code" x="584" y="399" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="675" y="399" fill="#cbd5e1" font-size="11" font-weight="500">name</text><rect x="908" y="387" width="30" height="16" rx="4" fill="#475569"/><text x="923" y="399" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">UK</text><rect x="571" y="408" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="425" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="675" y="425" fill="#cbd5e1" font-size="11" font-weight="500">slug</text><rect x="908" y="413" width="30" height="16" rx="4" fill="#475569"/><text x="923" y="425" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">UK</text><rect x="571" y="434" width="378" height="26" fill="#141e33"/><text class="code" x="584" y="451" fill="#94a3b8" font-size="10.5">text</text><text class="code" x="675" y="451" fill="#cbd5e1" font-size="11" font-weight="500">description</text><rect x="571" y="460" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="477" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="675" y="477" fill="#cbd5e1" font-size="11" font-weight="500">created_at</text></g>
+
+    <!-- Table: order_items -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="570" y="600" width="380" height="198" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="570" y="600" width="380" height="36" rx="10" fill="url(#hdr_violet)"/>
+      <rect x="570" y="628" width="380" height="8" fill="url(#hdr_violet)"/>
+      
+      <!-- Header text -->
+      <text x="586" y="623" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">ORDER_ITEMS</text>
+      <rect x="882" y="609" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="908" y="622" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="571" y="636" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="653" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="675" y="653" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="908" y="641" width="30" height="16" rx="4" fill="#d97706"/><text x="923" y="653" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="571" y="662" width="378" height="26" fill="#141e33"/><text class="code" x="584" y="679" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="675" y="679" fill="#f1f5f9" font-size="11" font-weight="700">order_id</text><text class="code" x="805" y="679" fill="#64748b" font-size="9.5">-> orders.id</text><rect x="908" y="667" width="30" height="16" rx="4" fill="#0284c7"/><text x="923" y="679" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="571" y="688" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="705" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="675" y="705" fill="#f1f5f9" font-size="11" font-weight="700">book_id</text><text class="code" x="805" y="705" fill="#64748b" font-size="9.5">-> books.id</text><rect x="908" y="693" width="30" height="16" rx="4" fill="#0284c7"/><text x="923" y="705" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="571" y="714" width="378" height="26" fill="#141e33"/><text class="code" x="584" y="731" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="675" y="731" fill="#cbd5e1" font-size="11" font-weight="500">title</text><rect x="571" y="740" width="378" height="26" fill="#0f172a"/><text class="code" x="584" y="757" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="675" y="757" fill="#cbd5e1" font-size="11" font-weight="500">quantity</text><text class="code" x="805" y="757" fill="#64748b" font-size="9.5">> 0</text><rect x="571" y="766" width="378" height="26" fill="#141e33"/><text class="code" x="584" y="783" fill="#94a3b8" font-size="10.5">decimal</text><text class="code" x="675" y="783" fill="#cbd5e1" font-size="11" font-weight="500">price_at_time</text><text class="code" x="805" y="783" fill="#64748b" font-size="9.5">>= 0</text></g>
+
+    <!-- Table: books -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="1070" y="110" width="390" height="328" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="1070" y="110" width="390" height="36" rx="10" fill="url(#hdr_orange)"/>
+      <rect x="1070" y="138" width="390" height="8" fill="url(#hdr_orange)"/>
+      
+      <!-- Header text -->
+      <text x="1086" y="133" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">BOOKS</text>
+      <rect x="1392" y="119" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="1418" y="132" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="1071" y="146" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="163" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="163" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="1418" y="151" width="30" height="16" rx="4" fill="#d97706"/><text x="1433" y="163" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="1071" y="172" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="189" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="1175" y="189" fill="#cbd5e1" font-size="11" font-weight="500">title</text><rect x="1071" y="198" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="215" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="215" fill="#f1f5f9" font-size="11" font-weight="700">author_id</text><text class="code" x="1305" y="215" fill="#64748b" font-size="9.5">-> authors.id</text><rect x="1418" y="203" width="30" height="16" rx="4" fill="#0284c7"/><text x="1433" y="215" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="1071" y="224" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="241" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="241" fill="#f1f5f9" font-size="11" font-weight="700">category_id</text><text class="code" x="1305" y="241" fill="#64748b" font-size="9.5">-> categories.id</text><rect x="1418" y="229" width="30" height="16" rx="4" fill="#0284c7"/><text x="1433" y="241" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="1071" y="250" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="267" fill="#94a3b8" font-size="10.5">decimal</text><text class="code" x="1175" y="267" fill="#cbd5e1" font-size="11" font-weight="500">price</text><text class="code" x="1305" y="267" fill="#64748b" font-size="9.5">>= 0</text><rect x="1071" y="276" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="293" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="1175" y="293" fill="#cbd5e1" font-size="11" font-weight="500">cover_color</text><rect x="1071" y="302" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="319" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="319" fill="#cbd5e1" font-size="11" font-weight="500">pages</text><text class="code" x="1305" y="319" fill="#64748b" font-size="9.5">>= 0</text><rect x="1071" y="328" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="345" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="1175" y="345" fill="#cbd5e1" font-size="11" font-weight="500">isbn</text><rect x="1418" y="333" width="30" height="16" rx="4" fill="#475569"/><text x="1433" y="345" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">UK</text><rect x="1071" y="354" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="371" fill="#94a3b8" font-size="10.5">boolean</text><text class="code" x="1175" y="371" fill="#cbd5e1" font-size="11" font-weight="500">is_active</text><text class="code" x="1305" y="371" fill="#64748b" font-size="9.5">DEFAULT true</text><rect x="1071" y="380" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="397" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="1175" y="397" fill="#cbd5e1" font-size="11" font-weight="500">file_url</text><rect x="1071" y="406" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="423" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="1175" y="423" fill="#cbd5e1" font-size="11" font-weight="500">created_at</text></g>
+
+    <!-- Table: download_links -->
+    <g filter="url(#table_shadow)">
+      <!-- Card background & border -->
+      <rect x="1070" y="600" width="390" height="224" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+      <!-- Header gradient banner -->
+      <rect x="1070" y="600" width="390" height="36" rx="10" fill="url(#hdr_indigo)"/>
+      <rect x="1070" y="628" width="390" height="8" fill="url(#hdr_indigo)"/>
+      
+      <!-- Header text -->
+      <text x="1086" y="623" fill="#ffffff" font-size="14" font-weight="700" letter-spacing="0.8">DOWNLOAD_LINKS</text>
+      <rect x="1392" y="609" width="52" height="18" rx="4" fill="#000000" fill-opacity="0.3"/>
+      <text x="1418" y="622" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">TABLE</text>
+    <rect x="1071" y="636" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="653" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="653" fill="#38bdf8" font-size="11" font-weight="700">id</text><rect x="1418" y="641" width="30" height="16" rx="4" fill="#d97706"/><text x="1433" y="653" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">PK</text><rect x="1071" y="662" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="679" fill="#94a3b8" font-size="10.5">varchar</text><text class="code" x="1175" y="679" fill="#cbd5e1" font-size="11" font-weight="500">token</text><text class="code" x="1305" y="679" fill="#64748b" font-size="9.5">UUID</text><rect x="1418" y="667" width="30" height="16" rx="4" fill="#475569"/><text x="1433" y="679" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">UK</text><rect x="1071" y="688" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="705" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="705" fill="#f1f5f9" font-size="11" font-weight="700">order_id</text><text class="code" x="1305" y="705" fill="#64748b" font-size="9.5">-> orders.id</text><rect x="1418" y="693" width="30" height="16" rx="4" fill="#0284c7"/><text x="1433" y="705" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="1071" y="714" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="731" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="731" fill="#f1f5f9" font-size="11" font-weight="700">book_id</text><text class="code" x="1305" y="731" fill="#64748b" font-size="9.5">-> books.id</text><rect x="1418" y="719" width="30" height="16" rx="4" fill="#0284c7"/><text x="1433" y="731" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">FK</text><rect x="1071" y="740" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="757" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="757" fill="#cbd5e1" font-size="11" font-weight="500">download_count</text><text class="code" x="1305" y="757" fill="#64748b" font-size="9.5">>= 0</text><rect x="1071" y="766" width="388" height="26" fill="#141e33"/><text class="code" x="1084" y="783" fill="#94a3b8" font-size="10.5">int</text><text class="code" x="1175" y="783" fill="#cbd5e1" font-size="11" font-weight="500">max_downloads</text><text class="code" x="1305" y="783" fill="#64748b" font-size="9.5">DEF 5</text><rect x="1071" y="792" width="388" height="26" fill="#0f172a"/><text class="code" x="1084" y="809" fill="#94a3b8" font-size="10.5">timestamptz</text><text class="code" x="1175" y="809" fill="#cbd5e1" font-size="11" font-weight="500">expires_at</text></g>
+
+    <path d="M 450 159.0 C 510 159.0, 510 345.0, 450 345.0" 
+          fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_start)" marker-end="url(#arrow_cyan)"/>
+    
+        <g transform="translate(495.0, 252.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#38bdf8" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#38bdf8" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+    <path d="M 450 319.0 C 525 319.0, 525 675.0, 450 675.0" 
+          fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_start)" marker-end="url(#arrow_cyan)"/>
+    
+        <g transform="translate(506.25, 497.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#38bdf8" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#38bdf8" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+    <path d="M 70 649.0 C 15 649.0, 15 955.0, 70 955.0" 
+          fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_amber)" marker-end="url(#arrow_amber)"/>
+    
+        <g transform="translate(28.75, 802.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#fbbf24" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#fbbf24" font-size="10.5" font-weight="700" text-anchor="middle">1 : 1</text>
+        </g>
+        
+    <path d="M 950 159.0 C 1010 159.0, 1010 211.0, 1070 211.0" 
+          fill="none" stroke="#f472b6" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_pink)" marker-end="url(#arrow_pink)"/>
+    
+        <g transform="translate(1010.0, 185.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#f472b6" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#f472b6" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+    <path d="M 950 369.0 C 1010 369.0, 1010 237.0, 1070 237.0" 
+          fill="none" stroke="#2dd4bf" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_teal)" marker-end="url(#arrow_teal)"/>
+    
+        <g transform="translate(1010.0, 303.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#2dd4bf" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#2dd4bf" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+    <path d="M 450 649.0 C 510 649.0, 510 675.0, 570 675.0" 
+          fill="none" stroke="#34d399" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_emerald)" marker-end="url(#arrow_emerald)"/>
+    
+        <g transform="translate(510.0, 662.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#34d399" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#34d399" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+    <path d="M 1070 159.0 C 1010 159.0, 1010 701.0, 950 701.0" 
+          fill="none" stroke="#fb923c" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_orange)" marker-end="url(#arrow_orange)"/>
+    
+        <g transform="translate(1010.0, 430.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#fb923c" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#fb923c" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+    <path d="M 450 659.0 C 510 890, 1030 890, 1070 701.0" 
+          fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_start)" marker-end="url(#arrow_cyan)"/>
+    
+        <g transform="translate(767.5, 837.5)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#38bdf8" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#38bdf8" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+    <path d="M 1460 159.0 C 1500 159.0, 1500 727.0, 1460 727.0" 
+          fill="none" stroke="#fb923c" stroke-width="2.4" stroke-linecap="round" 
+          marker-start="url(#dot_orange)" marker-end="url(#arrow_orange)"/>
+    
+        <g transform="translate(1490.0, 443.0)">
+          <rect x="-28.75" y="-11" width="57.5" height="22" rx="6" fill="#070b14" stroke="#fb923c" stroke-width="1.2"/>
+          <text class="code" x="0" y="4" fill="#fb923c" font-size="10.5" font-weight="700" text-anchor="middle">1 : N</text>
+        </g>
+        
+<!-- ERD Legend -->
+<g filter="url(#table_shadow)">
+  <rect x="1560" y="110" width="310" height="340" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+  <rect x="1560" y="110" width="310" height="38" rx="10" fill="#1e293b"/>
+  <rect x="1560" y="140" width="310" height="8" fill="#1e293b"/>
+  <text x="1580" y="135" fill="#f8fafc" font-size="13.5" font-weight="700">คำอธิบายสัญลักษณ์ (ERD Legend)</text>
+  
+  <!-- PK -->
+  <rect x="1580" y="165" width="32" height="18" rx="4" fill="#d97706"/>
+  <text x="1596" y="178" fill="#ffffff" font-size="9.5" font-weight="800" text-anchor="middle">PK</text>
+  <text x="1625" y="179" fill="#f1f5f9" font-size="12" font-weight="600">Primary Key (คีย์หลัก)</text>
+  <text x="1625" y="195" fill="#94a3b8" font-size="10.5">ระบุแถวข้อมูลเอกลักษณ์ ไม่ซ้ำ ไม่ว่าง</text>
+  
+  <!-- FK -->
+  <rect x="1580" y="215" width="32" height="18" rx="4" fill="#0284c7"/>
+  <text x="1596" y="228" fill="#ffffff" font-size="9.5" font-weight="800" text-anchor="middle">FK</text>
+  <text x="1625" y="229" fill="#f1f5f9" font-size="12" font-weight="600">Foreign Key (คีย์นอก)</text>
+  <text x="1625" y="245" fill="#94a3b8" font-size="10.5">คอลัมน์ที่อ้างอิงกลับไปยัง PK ตารางอื่น</text>
+  
+  <!-- UK -->
+  <rect x="1580" y="265" width="32" height="18" rx="4" fill="#475569"/>
+  <text x="1596" y="278" fill="#ffffff" font-size="9.5" font-weight="700" text-anchor="middle">UK</text>
+  <text x="1625" y="279" fill="#f1f5f9" font-size="12" font-weight="600">Unique Key (ห้ามซ้ำ)</text>
+  <text x="1625" y="295" fill="#94a3b8" font-size="10.5">ค่าข้อมูลต้องไม่ซ้ำกันในระบบ</text>
+  
+  <!-- Arrow meaning -->
+  <line x1="1580" y1="315" x2="1830" y2="315" stroke="#1e293b" stroke-width="1.5"/>
+  <circle cx="1590" cy="335" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="1605" y="339" fill="#cbd5e1" font-size="11">● หัวกลม = จุดเริ่มต้นจาก Primary Key</text>
+  <path d="M 1585 360 L 1595 365 L 1585 370 Z" fill="#38bdf8"/>
+  <text x="1605" y="369" fill="#cbd5e1" font-size="11">▶ หัวลูกศร = ชี้เจาะจงเข้าหา Foreign Key</text>
+  <text x="1580" y="410" fill="#34d399" font-size="11" font-weight="600">✓ ถูกต้องตามกฎ 3NF ครบทั้ง 9 ตาราง</text>
+  <text x="1580" y="430" fill="#64748b" font-size="10.5">Lampara Books Architecture 2026</text>
+</g>
+</svg>
