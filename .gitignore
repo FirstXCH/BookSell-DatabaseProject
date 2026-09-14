@@ -28,3 +28,8 @@ __pycache__/
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Presentation Scripts (Local only)
+*º·¾Ù´*
+scratch/
+
