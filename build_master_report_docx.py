@@ -6,6 +6,7 @@ Follows RMUTI Computer Engineering format and อาจารย์ประภ�
 """
 
 import os
+import shutil
 import docx
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -101,12 +102,20 @@ def add_styled_paragraph(doc, text="", bold=False, italic=False, space_after=6, 
 def add_code_block(doc, code_text):
     tbl = doc.add_table(rows=1, cols=1)
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
-    cell = tbl.cell(0, 0)
-    set_cell_background(cell, "F8FAFC") # Light slate
-    set_cell_margins(cell, top=140, bottom=140, left=180, right=180)
+    tbl.autofit = False
+    tbl.allow_autofit = False
+    tblPr = tbl._tbl.tblPr
+    tblW = parse_xml(f'<w:tblW {nsdecls("w")} w:w="{int(6.20 * 1440)}" w:type="dxa"/>')
+    tblPr.append(tblW)
     
-    # Left accent border
+    cell = tbl.cell(0, 0)
+    cell.width = Inches(6.20)
     tcPr = cell._tc.get_or_add_tcPr()
+    tcW = parse_xml(f'<w:tcW {nsdecls("w")} w:w="{int(6.20 * 1440)}" w:type="dxa"/>')
+    tcPr.append(tcW)
+    set_cell_background(cell, "F8FAFC")
+    set_cell_margins(cell, top=100, bottom=100, left=140, right=140)
+    
     borders = parse_xml(
         f'<w:tcBorders {nsdecls("w")}>\n'
         f'  <w:left w:val="single" w:sz="24" w:space="0" w:color="1E3A8A"/>\n'
@@ -122,19 +131,62 @@ def add_code_block(doc, code_text):
     p.paragraph_format.space_after = Pt(0)
     p.paragraph_format.line_spacing = 1.05
     run = p.add_run(code_text.strip())
-    set_run_font(run, 'Consolas', size_pt=10, color_rgb=RGBColor(15, 23, 42))
+    set_run_font(run, 'Consolas', size_pt=9.5, color_rgb=RGBColor(15, 23, 42))
     
     spacer = doc.add_paragraph()
     spacer.paragraph_format.space_before = Pt(0)
-    spacer.paragraph_format.space_after = Pt(6)
+    spacer.paragraph_format.space_after = Pt(4)
 
 def style_table(tbl, col_widths, headers, data, header_bg="1E3A8A"):
+    num_cols = len(col_widths)
+    total_width = sum(col_widths)
+    
+    is_very_dense = (num_cols >= 6)
+    is_dense = (num_cols == 5)
+    
+    if is_very_dense:
+        hdr_font_sz = 10.5
+        data_font_sz = 9.5
+        cell_pad_top = 50
+        cell_pad_bot = 50
+        cell_pad_lr = 70
+    elif is_dense:
+        hdr_font_sz = 11.5
+        data_font_sz = 10.0
+        cell_pad_top = 60
+        cell_pad_bot = 60
+        cell_pad_lr = 85
+    else:
+        hdr_font_sz = 13.0
+        data_font_sz = 11.5
+        cell_pad_top = 80
+        cell_pad_bot = 80
+        cell_pad_lr = 110
+
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tbl.autofit = False
+    tbl.allow_autofit = False
     set_table_borders(tbl, border_color="CBD5E1", top_bottom_color=header_bg, sz="4")
     
+    # Enforce strict table width in XML
+    tblPr = tbl._tbl.tblPr
+    for child in list(tblPr):
+        if child.tag.endswith('tblW'):
+            tblPr.remove(child)
+    tblW = parse_xml(f'<w:tblW {nsdecls("w")} w:w="{int(total_width * 1440)}" w:type="dxa"/>')
+    tblPr.append(tblW)
+
+    # Set table grid w:tblGrid
+    for child in list(tbl._tbl):
+        if child.tag.endswith('tblGrid'):
+            tbl._tbl.remove(child)
+    tblGrid = parse_xml(f'<w:tblGrid {nsdecls("w")}/>')
+    for w in col_widths:
+        tblGrid.append(parse_xml(f'<w:gridCol {nsdecls("w")} w:w="{int(w * 1440)}" w:type="dxa"/>'))
+    tbl._tbl.insert(tbl._tbl.index(tblPr) + 1, tblGrid)
+
     # Header row
     hdr_row = tbl.rows[0]
-    # Set header repetition across pages
     trPr = hdr_row._tr.get_or_add_trPr()
     trPr.append(OxmlElement('w:tblHeader'))
     trPr.append(OxmlElement('w:cantSplit'))
@@ -143,19 +195,19 @@ def style_table(tbl, col_widths, headers, data, header_bg="1E3A8A"):
     for i, title in enumerate(headers):
         hdr_cells[i].text = title
         set_cell_background(hdr_cells[i], header_bg)
-        set_cell_margins(hdr_cells[i], top=120, bottom=120, left=140, right=140)
+        set_cell_margins(hdr_cells[i], top=cell_pad_top + 30, bottom=cell_pad_bot + 30, left=cell_pad_lr, right=cell_pad_lr)
         hdr_cells[i].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         p = hdr_cells[i].paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after = Pt(0)
+        p.paragraph_format.line_spacing = 1.05
         for run in p.runs:
-            set_run_font(run, 'TH Sarabun New', size_pt=13.5, bold=True, color_rgb=RGBColor(255, 255, 255))
+            set_run_font(run, 'TH Sarabun New', size_pt=hdr_font_sz, bold=True, color_rgb=RGBColor(255, 255, 255))
 
     # Data rows
     for r_idx, row_data in enumerate(data):
         row = tbl.add_row()
-        # Row cantSplit
         r_trPr = row._tr.get_or_add_trPr()
         r_trPr.append(OxmlElement('w:cantSplit'))
         
@@ -164,13 +216,13 @@ def style_table(tbl, col_widths, headers, data, header_bg="1E3A8A"):
         for c_idx, cell_value in enumerate(row_data):
             row_cells[c_idx].text = str(cell_value)
             set_cell_background(row_cells[c_idx], bg_color)
-            set_cell_margins(row_cells[c_idx], top=90, bottom=90, left=130, right=130)
+            set_cell_margins(row_cells[c_idx], top=cell_pad_top, bottom=cell_pad_bot, left=cell_pad_lr, right=cell_pad_lr)
             row_cells[c_idx].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
             p = row_cells[c_idx].paragraphs[0]
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.line_spacing = 1.05
             
-            # Align center for codes / small IDs / numbers
             val_str = str(cell_value)
             if c_idx == 0 and len(val_str) < 15:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -180,14 +232,21 @@ def style_table(tbl, col_widths, headers, data, header_bg="1E3A8A"):
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 
             for run in p.runs:
-                set_run_font(run, 'TH Sarabun New', size_pt=13, color_rgb=RGBColor(30, 41, 59))
+                set_run_font(run, 'TH Sarabun New', size_pt=data_font_sz, color_rgb=RGBColor(30, 41, 59))
 
-    # Set column widths
+    # Strict cell widths in XML
     for row in tbl.rows:
         for i, w in enumerate(col_widths):
-            row.cells[i].width = Inches(w)
+            cell = row.cells[i]
+            cell.width = Inches(w)
+            tcPr = cell._tc.get_or_add_tcPr()
+            for child in list(tcPr):
+                if child.tag.endswith('tcW'):
+                    tcPr.remove(child)
+            tcW = parse_xml(f'<w:tcW {nsdecls("w")} w:w="{int(w * 1440)}" w:type="dxa"/>')
+            tcPr.append(tcW)
 
-def add_figure(doc, img_path, caption_text, width_inches=5.8):
+def add_figure(doc, img_path, caption_text, width_inches=5.6):
     if not os.path.exists(img_path):
         return
     p_img = doc.add_paragraph()
@@ -244,9 +303,11 @@ def main():
 
     # 1. Page Setup: Standard Academic Margins (Left 1.25", Right 1.0", Top 1.0", Bottom 1.0")
     for section in doc.sections:
+        section.page_width = Inches(8.27)
+        section.page_height = Inches(11.69)
         section.top_margin = Inches(1.0)
         section.bottom_margin = Inches(1.0)
-        section.left_margin = Inches(1.25)
+        section.left_margin = Inches(1.0)
         section.right_margin = Inches(1.0)
 
     setup_headers_and_footers(doc)
@@ -343,7 +404,7 @@ def main():
         ["ภาคผนวก ข", "การเชื่อมโยงโครงงานกับวิชาวิศวกรรมซอฟต์แวร์ (SWE Inventory System)", "27"]
     ]
     tbl_toc = doc.add_table(rows=1, cols=3)
-    style_table(tbl_toc, [2.3, 3.8, 0.6], toc_headers, toc_data, header_bg="1E3A8A")
+    style_table(tbl_toc, [2.1, 3.5, 0.6], toc_headers, toc_data, header_bg="1E3A8A")
 
     doc.add_page_break()
 
@@ -426,7 +487,7 @@ def main():
         ["ชุดไอคอน (Iconography)", "Lucide React Icons", "ไอคอนมาตรฐานแบบมินิมอล ช่วยให้ผู้ใช้เข้าใจสถานะของระบบได้อย่างชัดเจน"]
     ]
     tbl_tech = doc.add_table(rows=1, cols=3)
-    style_table(tbl_tech, [1.5, 2.0, 3.2], tech_headers, tech_data)
+    style_table(tbl_tech, [1.3, 1.8, 3.1], tech_headers, tech_data)
 
     doc.add_page_break()
 
@@ -472,7 +533,7 @@ def main():
         ["created_at", "TIMESTAMPTZ", "DEFAULT CURRENT_TIMESTAMP", "วันและเวลาที่บันทึกบทบาท"]
     ]
     tbl1 = doc.add_table(rows=1, cols=4)
-    style_table(tbl1, [1.2, 1.4, 2.1, 2.0], dict_headers, t1_data)
+    style_table(tbl1, [1.3, 1.1, 1.9, 1.9], dict_headers, t1_data)
 
     # 2. users
     add_styled_paragraph(doc, "ตารางที่ 2: users (ข้อมูลสมาชิกและผู้ดูแลระบบ)", bold=True, space_after=2)
@@ -490,7 +551,7 @@ def main():
         ["updated_at", "TIMESTAMPTZ", "DEFAULT CURRENT_TIMESTAMP", "วันและเวลาที่แก้ไขข้อมูลล่าสุด"]
     ]
     tbl2 = doc.add_table(rows=1, cols=4)
-    style_table(tbl2, [1.5, 1.2, 2.1, 1.9], dict_headers, t2_data)
+    style_table(tbl2, [1.3, 1.1, 1.9, 1.9], dict_headers, t2_data)
 
     # 3. authors
     add_styled_paragraph(doc, "ตารางที่ 3: authors (ข้อมูลผู้แต่ง / นักเขียน)", bold=True, space_after=2)
@@ -503,7 +564,7 @@ def main():
         ["created_at", "TIMESTAMPTZ", "DEFAULT CURRENT_TIMESTAMP", "วันและเวลาที่บันทึกข้อมูล"]
     ]
     tbl3 = doc.add_table(rows=1, cols=4)
-    style_table(tbl3, [1.2, 1.4, 2.1, 2.0], dict_headers, t3_data)
+    style_table(tbl3, [1.3, 1.1, 1.9, 1.9], dict_headers, t3_data)
 
     # 4. categories
     add_styled_paragraph(doc, "ตารางที่ 4: categories (หมวดหมู่หนังสือ)", bold=True, space_after=2)
@@ -515,7 +576,7 @@ def main():
         ["created_at", "TIMESTAMPTZ", "DEFAULT CURRENT_TIMESTAMP", "วันและเวลาที่สร้างหมวดหมู่"]
     ]
     tbl4 = doc.add_table(rows=1, cols=4)
-    style_table(tbl4, [1.2, 1.4, 2.1, 2.0], dict_headers, t4_data)
+    style_table(tbl4, [1.3, 1.1, 1.9, 1.9], dict_headers, t4_data)
 
     # 5. books
     add_styled_paragraph(doc, "ตารางที่ 5: books (ข้อมูลหนังสือดิจิทัล E-Book)", bold=True, space_after=2)
@@ -533,7 +594,7 @@ def main():
         ["file_url", "VARCHAR(500)", "NULL", "เส้นทางไฟล์ PDF/EPUB ตัวอย่าง"]
     ]
     tbl5 = doc.add_table(rows=1, cols=4)
-    style_table(tbl5, [1.2, 1.4, 2.1, 2.0], dict_headers, t5_data)
+    style_table(tbl5, [1.3, 1.1, 1.9, 1.9], dict_headers, t5_data)
 
     # 6. orders
     add_styled_paragraph(doc, "ตารางที่ 6: orders (ข้อมูลคำสั่งซื้อหลัก)", bold=True, space_after=2)
@@ -548,7 +609,7 @@ def main():
         ["created_at", "TIMESTAMPTZ", "DEFAULT CURRENT_TIMESTAMP", "วันและเวลาที่สั่งซื้อ"]
     ]
     tbl6 = doc.add_table(rows=1, cols=4)
-    style_table(tbl6, [1.4, 1.3, 2.1, 1.9], dict_headers, t6_data)
+    style_table(tbl6, [1.3, 1.1, 1.9, 1.9], dict_headers, t6_data)
 
     # 7. order_items
     add_styled_paragraph(doc, "ตารางที่ 7: order_items (รายการสินค้าในคำสั่งซื้อ)", bold=True, space_after=2)
@@ -561,7 +622,7 @@ def main():
         ["price_at_time", "DECIMAL(10,2)", "CHECK (price_at_time >= 0)", "ราคาต่อเล่ม ณ วันที่สั่งซื้อ"]
     ]
     tbl7 = doc.add_table(rows=1, cols=4)
-    style_table(tbl7, [1.2, 1.4, 2.1, 2.0], dict_headers, t7_data)
+    style_table(tbl7, [1.3, 1.1, 1.9, 1.9], dict_headers, t7_data)
 
     # 8. payments
     add_styled_paragraph(doc, "ตารางที่ 8: payments (ข้อมูลการชำระเงินและสลิปหลักฐาน)", bold=True, space_after=2)
@@ -576,7 +637,7 @@ def main():
         ["verified_at", "TIMESTAMPTZ", "NULL", "วันและเวลาที่ผู้ดูแลระบบอนุมัติสลิป"]
     ]
     tbl8 = doc.add_table(rows=1, cols=4)
-    style_table(tbl8, [1.4, 1.3, 2.1, 1.9], dict_headers, t8_data)
+    style_table(tbl8, [1.3, 1.1, 1.9, 1.9], dict_headers, t8_data)
 
     # 9. download_links
     add_styled_paragraph(doc, "ตารางที่ 9: download_links (สิทธิ์และโทเค็นดาวน์โหลดปลอดภัย)", bold=True, space_after=2)
@@ -591,7 +652,7 @@ def main():
         ["created_at", "TIMESTAMPTZ", "DEFAULT CURRENT_TIMESTAMP", "วันและเวลาที่เปิดสิทธิ์ดาวน์โหลด"]
     ]
     tbl9 = doc.add_table(rows=1, cols=4)
-    style_table(tbl9, [1.5, 1.2, 2.1, 1.9], dict_headers, t9_data)
+    style_table(tbl9, [1.3, 1.1, 1.9, 1.9], dict_headers, t9_data)
 
     doc.add_page_break()
 
@@ -687,7 +748,7 @@ ORDER BY sale_month DESC;"""
         ["2026-06", "8 ออเดอร์", "฿3,599.00", "฿449.88"]
     ]
     tbl_r1 = doc.add_table(rows=1, cols=4)
-    style_table(tbl_r1, [1.6, 1.5, 1.8, 1.8], r1_headers, r1_data, header_bg="B45309")
+    style_table(tbl_r1, [1.4, 1.4, 1.7, 1.7], r1_headers, r1_data, header_bg="B45309")
     add_styled_paragraph(doc, "• ผลการวิเคราะห์: ยอดขายในเดือนกันยายน 2026 สะท้อนข้อมูลการสั่งซื้อที่เพิ่มขึ้นสดจากระบบจริง ช่วยให้ผู้บริหารติดตามอัตราเติบโตและปรับกลยุทธ์ส่งเสริมการขายได้อย่างทันท่วงที", italic=True, space_after=12)
 
     # Report 2
@@ -722,7 +783,7 @@ LIMIT 5;"""
         ["#11", "ดาวพระศุกร์ก่อนรุ่งสาง", "อรุณ รุ่งโรจน์", "สารคดี", "3 เล่ม", "฿787.00"]
     ]
     tbl_r2 = doc.add_table(rows=1, cols=6)
-    style_table(tbl_r2, [0.6, 2.2, 1.4, 1.1, 1.1, 1.3], r2_headers, r2_data, header_bg="1E3A8A")
+    style_table(tbl_r2, [0.5, 1.5, 1.2, 1.0, 1.0, 1.0], r2_headers, r2_data, header_bg="1E3A8A")
     add_styled_paragraph(doc, "• ผลการวิเคราะห์: หนังสือด้านวิทยาการและเทคโนโลยีสร้างรายได้เฉลี่ยต่อเล่มสูงสุด ควรจัดวางเป็นสินค้าแนะนำบนแบนเนอร์หน้าแรกของร้าน", italic=True, space_after=12)
 
     # Report 3
@@ -754,7 +815,7 @@ ORDER BY total_category_revenue DESC;"""
         ["CAT-4", "ศิลปะและการออกแบบ", "4 ออเดอร์", "4 เล่ม", "฿1,256.00"]
     ]
     tbl_r3 = doc.add_table(rows=1, cols=5)
-    style_table(tbl_r3, [0.8, 2.2, 1.5, 1.5, 1.7], r3_headers, r3_data, header_bg="047857")
+    style_table(tbl_r3, [0.6, 1.8, 1.3, 1.2, 1.3], r3_headers, r3_data, header_bg="047857")
     add_styled_paragraph(doc, "• ผลการวิเคราะห์: หมวดวิทยาการและคอมพิวเตอร์มียอดขายรวมสูงสุด สะท้อนกลุ่มผู้อ่านหลักที่เป็นนักศึกษาและสายงานไอที", italic=True, space_after=12)
 
     # Report 4
@@ -787,7 +848,7 @@ ORDER BY total_spent DESC;"""
         ["พีรณัฐ สายซอฟต์แวร์", "peerat.dev@outlook.com", "3 ออเดอร์", "฿1,237.00", "3 ออเดอร์", "0", "0"]
     ]
     tbl_r4 = doc.add_table(rows=1, cols=7)
-    style_table(tbl_r4, [1.6, 2.0, 0.9, 1.2, 0.9, 0.9, 0.8], r4_headers, r4_data, header_bg="4338CA")
+    style_table(tbl_r4, [0.9, 1.3, 0.7, 0.7, 0.9, 0.8, 0.9], r4_headers, r4_data, header_bg="4338CA")
     add_styled_paragraph(doc, "• ผลการวิเคราะห์: สามารถระบุกลุ่มลูกค้า VIP เพื่อจัดทำระบบสะสมแต้ม หรือมอบคูปองส่วนลดพิเศษเพื่อกระตุ้นการซื้อซ้ำได้อย่างแม่นยำ", italic=True, space_after=12)
 
     doc.add_page_break()
@@ -857,7 +918,7 @@ ORDER BY total_spent DESC;"""
         ["TC-08", "ส่งออกรายงาน CSV ภาษาไทย", "กดปุ่ม Export CSV ในหน้ารายงานที่ 1", "เปิดไฟล์ใน Microsoft Excel ภาษาไทยไม่เพี้ยน", "ได้ไฟล์ CSV พร้อม UTF-8 BOM อ่านไทยได้ 100%", "ผ่าน"]
     ]
     tbl_tc = doc.add_table(rows=1, cols=6)
-    style_table(tbl_tc, [0.7, 1.8, 1.8, 1.8, 1.8, 0.7], tc_headers, tc_data)
+    style_table(tbl_tc, [0.6, 1.4, 1.3, 1.3, 1.0, 0.6], tc_headers, tc_data)
 
     doc.add_page_break()
 
@@ -876,7 +937,7 @@ ORDER BY total_spent DESC;"""
         ["14 ก.ย. 69", "Claude / Antigravity", "ช่วยปรับเปลี่ยนฟอนต์ทั้งเว็บให้เป็น Minimal (Plus Jakarta Sans และ IBM Plex Sans Thai) และทำ Route Guard 403", "ได้โค้ด CSS Token และโค้ดตรวจสอบ Role Guard ใน React", "ตรวจสอบการแสดงผลบนหน้าจอคอมพิวเตอร์และมือถือ ยืนยันว่าปุ่มหลังบ้านถูกซ่อนจากลูกค้าจริง"]
     ]
     tbl_ai = doc.add_table(rows=1, cols=5)
-    style_table(tbl_ai, [1.0, 1.3, 2.3, 1.8, 2.3], ai_headers, ai_data)
+    style_table(tbl_ai, [0.8, 1.2, 1.5, 1.3, 1.4], ai_headers, ai_data)
 
     add_styled_heading(doc, "7.2 ข้อเสนอแนะของ AI ที่นักศึกษาตัดสินใจปฏิเสธ (Rejected AI Proposals)", level=2)
     for rej in [
@@ -936,15 +997,28 @@ ORDER BY total_spent DESC;"""
     )
 
     # Save to multiple naming conventions
-    paths_to_save = [
-        r"d:\learnCode\BookSell-DatabaseProject\รายงาน_โครงงานระบบฐานข้อมูล_ร้านขาย_E-Book_2026.docx",
-        r"d:\learnCode\BookSell-DatabaseProject\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.docx",
-        r"d:\learnCode\BookSell-DatabaseProject\Lampara_Books_Database_Report_2026.docx"
-    ]
-    
-    for p in paths_to_save:
-        doc.save(p)
-        print(f"Saved: {p} ({os.path.getsize(p):,} bytes)")
+    main_docx = r"d:\learnCode\BookSell-DatabaseProject\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.docx"
+    doc.save(main_docx)
+    print(f"Saved DOCX: {main_docx} ({os.path.getsize(main_docx):,} bytes)")
+
+    desktop_docx = r"C:\Users\First 1\Desktop\Db\01_เอกสารรายงาน-MiniProject-Database\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.docx"
+    shutil.copy2(main_docx, desktop_docx)
+    print(f"Synced DOCX to: {desktop_docx}")
+
+    try:
+        import win32com.client
+        word = win32com.client.Dispatch("Word.Application")
+        word.Visible = False
+        doc_com = word.Documents.Open(os.path.abspath(main_docx))
+        main_pdf = r"d:\learnCode\BookSell-DatabaseProject\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.pdf"
+        desktop_pdf = r"C:\Users\First 1\Desktop\Db\01_เอกสารรายงาน-MiniProject-Database\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.pdf"
+        doc_com.SaveAs(os.path.abspath(main_pdf), FileFormat=17)
+        doc_com.Close()
+        word.Quit()
+        shutil.copy2(main_pdf, desktop_pdf)
+        print(f"Exported and synced PDF: {main_pdf}")
+    except Exception as e:
+        print("Word COM note:", e)
 
 if __name__ == "__main__":
     main()
