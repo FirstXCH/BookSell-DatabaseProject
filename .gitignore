@@ -1,4 +1,4 @@
-# Dependencies
+﻿# Dependencies
 node_modules/
 /.pnp
 .pnp.js
@@ -30,7 +30,10 @@ __pycache__/
 next-env.d.ts
 
 # Presentation Scripts (Local only)
-*���ٴ*
+*บทพูด*
 scratch/
 
 *PresentationScript*
+
+# Study Guide & Preparation Files (Local only)
+STEP_*.md
