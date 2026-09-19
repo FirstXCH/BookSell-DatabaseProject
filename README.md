@@ -58,6 +58,17 @@
 * ออกแบบ Query ภาษา SQL ขั้นสูงเพื่อสร้าง **รายงานวิเคราะห์ 4 ด้าน** เพื่อสนับสนุนการตัดสินใจของผู้บริหาร
 * พัฒนาระบบเว็บเชื่อมต่อฐานข้อมูลจริง รองรับทั้งเส้นทางการทำงานของ **ลูกค้า (Customer)** และ **ผู้ดูแลระบบ (Admin)**
 
+### 1.3 สถาปัตยกรรมระบบและชุดเทคโนโลยี (System Architecture & Technology Stack)
+
+ระบบถูกออกแบบและพัฒนาภายใต้สถาปัตยกรรม **3-Tier System Architecture** ที่แบ่งแยกหน้าที่การทำงานอย่างเป็นสัดส่วน พร้อมเครื่องมือพัฒนาและทดสอบครบวงจร:
+
+![แผนภาพสถาปัตยกรรมระบบและชุดเทคโนโลยี (Lampara Books System Architecture)](docs/images/tech_stack_architecture.png?v=1)
+
+* **Tier 1 (Client / Frontend):** พัฒนาด้วย Next.js (App Router), React, TypeScript และ Tailwind CSS สำหรับส่วนติดต่อผู้ใช้งานและจัดการสถานะ
+* **Tier 2 (Hosting / Platform):** รองรับการโฮสต์ระดับ Edge บน Vercel พร้อม GitHub สำหรับการควบคุมเวอร์ชันและการทำงานร่วมกัน
+* **Tier 3 (Database / Backend):** จัดการฐานข้อมูลเชิงสัมพันธ์ด้วย PostgreSQL (Supabase Cloud), Supabase Storage และโครงสร้าง 9 ตารางตามเกณฑ์ 3NF
+* **Testing & Tools:** เครื่องมือทดสอบอัตโนมัติ End-to-End ด้วย Playwright และการจำลองผังฐานข้อมูลด้วย dbdiagram.io
+
 ---
 
 ## 2. การออกแบบฐานข้อมูลเชิงแนวคิดและภาพรวม ER
