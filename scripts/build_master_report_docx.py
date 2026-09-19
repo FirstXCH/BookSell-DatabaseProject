@@ -275,7 +275,7 @@ def setup_headers_and_footers(doc):
     p_hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     p_hdr.paragraph_format.space_before = Pt(0)
     p_hdr.paragraph_format.space_after = Pt(4)
-    r_hdr = p_hdr.add_run("โครงงานระบบฐานข้อมูลร้านขายหนังสือและอีบุ๊กออนไลน์ (Lampara Books) | มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน")
+    r_hdr = p_hdr.add_run("โครงงานระบบฐานข้อมูลร้านขายหนังสือและอีบุ๊กออนไลน์ (Lampara Books) | มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น")
     set_run_font(r_hdr, 'TH Sarabun New', size_pt=10, italic=True, color_rgb=RGBColor(148, 163, 184))
     
     # Footer on page 2+
@@ -334,7 +334,7 @@ def main():
     if os.path.exists(logo_path):
         p_logo.add_run().add_picture(logo_path, width=Inches(1.35))
     else:
-        r = p_logo.add_run("[ตราสัญลักษณ์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน]")
+        r = p_logo.add_run("[ตราสัญลักษณ์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น]")
         set_run_font(r, 'TH Sarabun New', 16, bold=True)
 
     p_rep = doc.add_paragraph()
@@ -358,7 +358,7 @@ def main():
     r = p_course.add_run(
         "รายวิชา: [31-407-102-301] ระบบฐานข้อมูล (Database Systems)\n"
         "หลักสูตรวิศวกรรมคอมพิวเตอร์ (ECP) ชั้นปีที่ 3 ห้อง ECP 321\n"
-        "คณะวิศวกรรมศาสตร์และเทคโนโลยี มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน\n"
+        "คณะวิศวกรรมศาสตร์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น\n"
         "ภาคการศึกษาที่ 1 ปีการศึกษา 2569"
     )
     set_run_font(r, 'TH Sarabun New', size_pt=14.5, color_rgb=RGBColor(71, 85, 105))
@@ -387,7 +387,7 @@ def main():
     p_foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_foot.paragraph_format.space_before = Pt(0)
     p_foot.paragraph_format.space_after = Pt(0)
-    r = p_foot.add_run("ภาควิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์และเทคโนโลยี\nมหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน นครราชสีมา")
+    r = p_foot.add_run("สาขาวิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์\nมหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น")
     set_run_font(r, 'TH Sarabun New', size_pt=13, color_rgb=RGBColor(100, 116, 139))
 
     doc.add_page_break()
@@ -1001,7 +1001,7 @@ ORDER BY total_spent DESC;"""
 
     add_styled_heading(doc, "ภาคผนวก ข: การเชื่อมโยงโครงงานกับวิชาวิศวกรรมซอฟต์แวร์ (SWE Inventory System)", level=2)
     add_styled_paragraph(doc, 
-        "ตามประกาศของ อ.ดร.ปิยะนุช ตั้งกิตติพล ในวิชาวิศวกรรมซอฟต์แวร์ โครงงานฝั่งฐานข้อมูลนี้ได้รับการจัดเก็บแยกเป็น Repository ใหม่บน GitHub โดยเฉพาะ เพื่อส่งให้อาจารย์ประภาส ผ่องสนาม และเชื่อมโยงข้ามไปยัง Repository โครงงาน Inventory System ของวิชา SWE ด้วยลิงก์อ้างอิงข้ามหากันในไฟล์ README.md และ PROJECT.md อย่างถูกต้องตามแนวทางปฏิบัติของหลักสูตรวิศวกรรมคอมพิวเตอร์ มทร.อีสาน"
+        "ตามประกาศของ อ.ดร.ปิยะนุช ตั้งกิตติพล ในวิชาวิศวกรรมซอฟต์แวร์ โครงงานฝั่งฐานข้อมูลนี้ได้รับการจัดเก็บแยกเป็น Repository ใหม่บน GitHub โดยเฉพาะ เพื่อส่งให้อาจารย์ประภาส ผ่องสนาม และเชื่อมโยงข้ามไปยัง Repository โครงงาน Inventory System ของวิชา SWE ด้วยลิงก์อ้างอิงข้ามหากันในไฟล์ README.md และ PROJECT.md อย่างถูกต้องตามแนวทางปฏิบัติของหลักสูตรวิศวกรรมคอมพิวเตอร์ มทร.อีสาน วิทยาเขตขอนแก่น"
     )
 
     # Save to multiple naming conventions
