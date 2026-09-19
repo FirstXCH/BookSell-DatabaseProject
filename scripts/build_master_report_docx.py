@@ -324,74 +324,54 @@ def main():
         logo_path = r"C:\Users\First 1\Downloads\RMUTI-logo-color2.png"
 
     # =========================================================================
-    # 🌟 หน้าปก (Official Cover Page)
+    # 🌟 หน้าปกตามแบบมาตรฐาน (Official Engineering Project Cover Format)
     # =========================================================================
     p_logo = doc.add_paragraph()
     p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_logo.paragraph_format.space_before = Pt(0)
-    p_logo.paragraph_format.space_after = Pt(6)
+    p_logo.paragraph_format.space_before = Pt(10)
+    p_logo.paragraph_format.space_after = Pt(20)
     
     if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Inches(1.35))
+        p_logo.add_run().add_picture(logo_path, width=Inches(1.6))
     else:
         r = p_logo.add_run("[ตราสัญลักษณ์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น]")
         set_run_font(r, 'TH Sarabun New', 16, bold=True)
 
-    p_rep = doc.add_paragraph()
-    p_rep.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_rep.paragraph_format.space_before = Pt(0)
-    p_rep.paragraph_format.space_after = Pt(2)
-    r = p_rep.add_run("รายงานโครงงานพัฒนาระบบฐานข้อมูล (Mini Project Report)")
-    set_run_font(r, 'TH Sarabun New', size_pt=20, bold=True, color_rgb=RGBColor(30, 58, 138))
-
+    # 1. Title Block (ชื่อโครงงาน)
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_title.paragraph_format.space_before = Pt(0)
-    p_title.paragraph_format.space_after = Pt(10)
-    r = p_title.add_run("ระบบร้านขายหนังสือและอีบุ๊กออนไลน์\n(Lampara Books E-Book Store)")
-    set_run_font(r, 'TH Sarabun New', size_pt=24, bold=True, color_rgb=RGBColor(180, 83, 9))
+    p_title.paragraph_format.space_after = Pt(0)
+    p_title.paragraph_format.line_spacing = 1.25
+    r = p_title.add_run("การวิเคราะห์และพัฒนาระบบร้านขายหนังสือและอีบุ๊กออนไลน์\n(Lampara Books E-Book Store)\nโครงงานพัฒนาระบบฐานข้อมูล (Mini Project)")
+    set_run_font(r, 'TH Sarabun New', size_pt=20, bold=True)
 
-    p_course = doc.add_paragraph()
-    p_course.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_course.paragraph_format.space_before = Pt(0)
-    p_course.paragraph_format.space_after = Pt(14)
-    r = p_course.add_run(
-        "รายวิชา: [31-407-102-301] ระบบฐานข้อมูล (Database Systems)\n"
-        "หลักสูตรวิศวกรรมคอมพิวเตอร์ (ECP) ชั้นปีที่ 3 ห้อง ECP 321\n"
-        "คณะวิศวกรรมศาสตร์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น\n"
-        "ภาคการศึกษาที่ 1 ปีการศึกษา 2569"
-    )
-    set_run_font(r, 'TH Sarabun New', size_pt=14.5, color_rgb=RGBColor(71, 85, 105))
-
-    p_adviser = doc.add_paragraph()
-    p_adviser.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_adviser.paragraph_format.space_before = Pt(0)
-    p_adviser.paragraph_format.space_after = Pt(12)
-    r1 = p_adviser.add_run("อาจารย์ผู้สอน\n")
-    set_run_font(r1, 'TH Sarabun New', size_pt=15, bold=True)
-    r2 = p_adviser.add_run("อาจารย์ประภาส ผ่องสนาม")
-    set_run_font(r2, 'TH Sarabun New', size_pt=17, bold=True, color_rgb=RGBColor(15, 23, 42))
-
+    # 2. Author Block (ผู้จัดทำ - กึ่งกลางหน้า)
     p_author = doc.add_paragraph()
     p_author.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_author.paragraph_format.space_before = Pt(0)
-    p_author.paragraph_format.space_after = Pt(14)
-    r1 = p_author.add_run("จัดทำโดย\n")
-    set_run_font(r1, 'TH Sarabun New', size_pt=15, bold=True)
-    r2 = p_author.add_run("นายกานต์นิธิ ยะโส\n")
-    set_run_font(r2, 'TH Sarabun New', size_pt=17, bold=True, color_rgb=RGBColor(15, 23, 42))
-    r3 = p_author.add_run("รหัสนักศึกษา: 67332110223-9  กลุ่มเรียน: ECP3N")
-    set_run_font(r3, 'TH Sarabun New', size_pt=14)
+    p_author.paragraph_format.space_before = Pt(120)
+    p_author.paragraph_format.space_after = Pt(0)
+    p_author.paragraph_format.line_spacing = 1.2
+    r1 = p_author.add_run("นายกานต์นิธิ ยะโส\n")
+    set_run_font(r1, 'TH Sarabun New', size_pt=18)
+    r2 = p_author.add_run("รหัสนักศึกษา 67332110223-9")
+    set_run_font(r2, 'TH Sarabun New', size_pt=15)
 
+    # 3. Footer / Affiliation Block (ส่วนล่างหน้าปก)
     p_foot = doc.add_paragraph()
     p_foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_foot.paragraph_format.space_before = Pt(0)
+    p_foot.paragraph_format.space_before = Pt(120)
     p_foot.paragraph_format.space_after = Pt(0)
-    r = p_foot.add_run("สาขาวิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์\nมหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น")
-    set_run_font(r, 'TH Sarabun New', size_pt=13, color_rgb=RGBColor(100, 116, 139))
+    p_foot.paragraph_format.line_spacing = 1.25
+    r = p_foot.add_run(
+        "โครงงานนี้เป็นส่วนหนึ่งของการศึกษารายวิชา [31-407-102-301] ระบบฐานข้อมูล\n"
+        "สาขาวิชาวิศวกรรมคอมพิวเตอร์ คณะวิศวกรรมศาสตร์\n"
+        "มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น พ.ศ. 2569\n"
+        "ลิขสิทธิ์ของคณะวิศวกรรมศาสตร์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน"
+    )
+    set_run_font(r, 'TH Sarabun New', size_pt=15)
 
     doc.add_page_break()
-
     # =========================================================================
     # 🌟 สารบัญโครงงาน (Table of Contents)
     # =========================================================================
