@@ -10,7 +10,8 @@ import shutil
 import docx
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.enum.section import WD_SECTION_START
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import nsdecls, qn
@@ -87,12 +88,28 @@ def add_styled_heading(doc, text, level):
         set_run_font(run, 'TH Sarabun New', size_pt=14.5, bold=True, color_rgb=RGBColor(51, 65, 85)) # Slate 700
     return p
 
-def add_styled_paragraph(doc, text="", bold=False, italic=False, space_after=6, font_size=15, color_rgb=None, align=WD_ALIGN_PARAGRAPH.LEFT):
+def add_styled_paragraph(doc, text="", bold=False, italic=False, space_after=6, font_size=15, color_rgb=None, align=WD_ALIGN_PARAGRAPH.LEFT, first_line_indent=None):
     p = doc.add_paragraph()
     p.alignment = align
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(space_after)
     p.paragraph_format.line_spacing = 1.15
+    
+    txt_stripped = text.strip()
+    if first_line_indent is not None:
+        if first_line_indent > 0:
+            p.paragraph_format.first_line_indent = Inches(first_line_indent)
+    else:
+        is_list_or_short = (
+            txt_stripped.startswith(("[X]", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", 
+                                     "ก)", "ข)", "ค)", "•", "-", "--")) or
+            len(txt_stripped) < 70 or
+            bold or
+            align != WD_ALIGN_PARAGRAPH.LEFT
+        )
+        if not is_list_or_short:
+            p.paragraph_format.first_line_indent = Inches(0.5)
+            
     if text:
         run = p.add_run(text)
         col = color_rgb if color_rgb else RGBColor(30, 41, 59)
@@ -265,39 +282,25 @@ def add_figure(doc, img_path, caption_text, width_inches=4.7):
     set_run_font(run_cap, 'TH Sarabun New', size_pt=11.5, bold=True, color_rgb=RGBColor(71, 85, 105))
 
 def setup_headers_and_footers(doc):
-    """Setup running header and page numbering footer on pages 2+."""
+    """Setup Section 1 (Cover and TOC) to have NO header and NO footer."""
     section = doc.sections[0]
     section.different_first_page_header_footer = True
     
-    # Header on page 2+
+    # Clean header on Section 1
     header = section.header
     p_hdr = header.paragraphs[0]
+    p_hdr.text = ""
     p_hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     p_hdr.paragraph_format.space_before = Pt(0)
-    p_hdr.paragraph_format.space_after = Pt(4)
-    r_hdr = p_hdr.add_run("โครงงานระบบฐานข้อมูลร้านขายหนังสือและอีบุ๊กออนไลน์ (Lampara Books) | มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น")
-    set_run_font(r_hdr, 'TH Sarabun New', size_pt=10, italic=True, color_rgb=RGBColor(148, 163, 184))
+    p_hdr.paragraph_format.space_after = Pt(0)
     
-    # Footer on page 2+
+    # Clean footer on Section 1
     footer = section.footer
     p_ftr = footer.paragraphs[0]
+    p_ftr.text = ""
     p_ftr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p_ftr.paragraph_format.space_before = Pt(4)
+    p_ftr.paragraph_format.space_before = Pt(0)
     p_ftr.paragraph_format.space_after = Pt(0)
-    
-    r1 = p_ftr.add_run("หน้า ")
-    set_run_font(r1, 'TH Sarabun New', size_pt=11, color_rgb=RGBColor(100, 116, 139))
-    
-    fld1 = OxmlElement('w:fldSimple')
-    fld1.set(qn('w:instr'), 'PAGE')
-    p_ftr._p.append(fld1)
-    
-    r2 = p_ftr.add_run(" จาก ")
-    set_run_font(r2, 'TH Sarabun New', size_pt=11, color_rgb=RGBColor(100, 116, 139))
-    
-    fld2 = OxmlElement('w:fldSimple')
-    fld2.set(qn('w:instr'), 'NUMPAGES')
-    p_ftr._p.append(fld2)
 
 def main():
     doc = Document()
@@ -328,11 +331,11 @@ def main():
     # =========================================================================
     p_logo = doc.add_paragraph()
     p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_logo.paragraph_format.space_before = Pt(10)
-    p_logo.paragraph_format.space_after = Pt(20)
+    p_logo.paragraph_format.space_before = Pt(0)
+    p_logo.paragraph_format.space_after = Pt(12)
     
     if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Inches(1.6))
+        p_logo.add_run().add_picture(logo_path, width=Inches(1.55))
     else:
         r = p_logo.add_run("[ตราสัญลักษณ์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตขอนแก่น]")
         set_run_font(r, 'TH Sarabun New', 16, bold=True)
@@ -349,7 +352,7 @@ def main():
     # 2. Author Block (ผู้จัดทำ - กึ่งกลางหน้า)
     p_author = doc.add_paragraph()
     p_author.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_author.paragraph_format.space_before = Pt(120)
+    p_author.paragraph_format.space_before = Pt(45)
     p_author.paragraph_format.space_after = Pt(0)
     p_author.paragraph_format.line_spacing = 1.2
     r1 = p_author.add_run("นายกานต์นิธิ ยะโส\n")
@@ -360,7 +363,7 @@ def main():
     # 3. Footer / Affiliation Block (ส่วนล่างหน้าปก)
     p_foot = doc.add_paragraph()
     p_foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_foot.paragraph_format.space_before = Pt(120)
+    p_foot.paragraph_format.space_before = Pt(50)
     p_foot.paragraph_format.space_after = Pt(0)
     p_foot.paragraph_format.line_spacing = 1.25
     r = p_foot.add_run(
@@ -371,30 +374,176 @@ def main():
     )
     set_run_font(r, 'TH Sarabun New', size_pt=15)
 
-    doc.add_page_break()
+    # Clean Page Break directly to Table of Contents (No blank page overflow!)
+    p_break = doc.add_paragraph()
+    p_break.paragraph_format.space_before = Pt(0)
+    p_break.paragraph_format.space_after = Pt(0)
+    p_break.paragraph_format.line_spacing = Pt(0)
+    r_br = p_break.add_run()
+    r_br.add_break(WD_BREAK.PAGE)
     # =========================================================================
     # 🌟 สารบัญโครงงาน (Table of Contents)
     # =========================================================================
     add_styled_heading(doc, "สารบัญ (Table of Contents)", level=1)
     
-    toc_headers = ["ลำดับบท / หัวข้อ", "รายละเอียดสาระสำคัญ", "หน้า"]
-    toc_data = [
-        ["บทสรุปผู้บริหาร", "Executive Summary สรุปภาพรวมโครงงานและผลสัมฤทธิ์", "1"],
-        ["บทที่ 1: บทนำและวัตถุประสงค์", "ที่มา, ความสำคัญ, วัตถุประสงค์ 5 ข้อ, ขอบเขตลูกค้า/แอดมิน, เทคโนโลยี", "2"],
-        ["บทที่ 2: การวิเคราะห์และออกแบบฐานข้อมูล", "ผังความสัมพันธ์ (ERD), กฎ Normalization (3NF), Data Dictionary 9 ตาราง", "4"],
-        ["บทที่ 3: การสร้างฐานข้อมูลและ DDL", "SQL Schema DDL, Integrity Constraints, RLS, Indexes, ข้อมูล Seed", "9"],
-        ["บทที่ 4: รายงานวิเคราะห์ข้อมูลเชิงลึก 4 ด้าน", "ยอดขายรายเดือน, สินค้าขายดี 5 อันดับ, ยอดขายตามหมวดหมู่, ลูกค้า VIP", "12"],
-        ["บทที่ 5: การพัฒนาเว็บแอปและการควบคุมสิทธิ์", "Next.js Architecture, RBAC Guard, 403 Access Denied, CSV Export", "16"],
-        ["บทที่ 6: แผนการทดสอบและประกันคุณภาพ", "ผลการทดสอบกรณีทดสอบ 8 กรณี (TC-01 ถึง TC-08) ตรงเกณฑ์ใบงาน", "21"],
-        ["บทที่ 7: การประยุกต์ใช้ AI และจริยธรรมข้อมูล", "บันทึก AI Prompt, ข้อเสนอที่นักศึกษาปฏิเสธ, จริยธรรมข้อมูล PDPA", "23"],
-        ["บทที่ 8: สรุปผลการดำเนินงานและข้อเสนอแนะ", "สรุปผลสัมฤทธิ์โครงงาน, ปัญหาและแนวทางแก้ไข, ข้อเสนอแนะพัฒนาต่อยอด", "25"],
-        ["ภาคผนวก ก", "รายการตรวจสอบความพร้อมก่อนส่งงาน (Submission Checklist)", "26"],
-        ["ภาคผนวก ข", "การเชื่อมโยงโครงงานกับวิชาวิศวกรรมซอฟต์แวร์ (SWE Inventory System)", "27"]
+    # Complete Table of Contents structure with proper indentation for subheadings
+    # (Title, is_bold_chapter, indent_in, initial_page, search_key)
+    toc_items = [
+        ("บทสรุปผู้บริหาร (Executive Summary)", True, 0, "1", "บทสรุปผู้บริหาร (Executive Summary)"),
+        ("บทที่ 1: บทนำและวัตถุประสงค์ของโครงงาน", True, 0, "2", "บทที่ 1: บทนำและวัตถุประสงค์ของโครงงาน"),
+        ("1.1 ที่มาและความสำคัญของปัญหา", False, 0.22, "2", "1.1 ที่มาและความสำคัญของปัญหา"),
+        ("1.2 วัตถุประสงค์ของโครงงาน", False, 0.22, "2", "1.2 วัตถุประสงค์ของโครงงาน"),
+        ("1.3 ขอบเขตของระบบ (System Scope)", False, 0.22, "3", "1.3 ขอบเขตของระบบ (System Scope)"),
+        ("1.4 เครื่องมือและเทคโนโลยีที่ใช้พัฒนา", False, 0.22, "3", "1.4 เครื่องมือและเทคโนโลยีที่ใช้พัฒนา"),
+        ("บทที่ 2: การวิเคราะห์และออกแบบฐานข้อมูล", True, 0, "5", "บทที่ 2: การวิเคราะห์และออกแบบฐานข้อมูล"),
+        ("2.1 โครงสร้างผังความสัมพันธ์ข้อมูล (Entity-Relationship Diagram)", False, 0.22, "5", "2.1 โครงสร้างผังความสัมพันธ์ข้อมูล"),
+        ("2.2 ทฤษฎีการปรับรูปบรรทัดฐาน (Database Normalization to 3NF)", False, 0.22, "5", "2.2 ทฤษฎีการปรับรูปบรรทัดฐาน"),
+        ("2.3 พจนานุกรมข้อมูลฉบับสมบูรณ์ 9 ตาราง (Data Dictionary)", False, 0.22, "6", "2.3 พจนานุกรมข้อมูลฉบับสมบูรณ์"),
+        ("บทที่ 3: การสร้างฐานข้อมูลและข้อกำหนดบูรณภาพข้อมูล", True, 0, "10", "บทที่ 3: การสร้างฐานข้อมูลและข้อกำหนดบูรณภาพข้อมูล"),
+        ("3.1 DDL Scripts และการสร้างตารางบน Supabase PostgreSQL", False, 0.22, "10", "3.1 DDL Scripts และการสร้างตารางบน Supabase"),
+        ("3.2 ข้อกำหนดบูรณภาพข้อมูล (Integrity Constraints)", False, 0.22, "10", "3.2 ข้อกำหนดบูรณภาพข้อมูล (Integrity Constraints)"),
+        ("3.3 ข้อมูลตัวอย่างทดสอบระบบ (Seed Data)", False, 0.22, "11", "3.3 ข้อมูลตัวอย่างทดสอบระบบ (Seed Data)"),
+        ("บทที่ 4: รายงานวิเคราะห์ข้อมูลเชิงลึก 4 ด้าน", True, 0, "12", "บทที่ 4: รายงานวิเคราะห์ข้อมูลเชิงลึก 4 ด้าน"),
+        ("4.1 รายงานที่ 1: ยอดขายตามช่วงเวลา (Sales Over Time by Month)", False, 0.22, "12", "4.1 รายงานที่ 1: ยอดขายตามช่วงเวลา"),
+        ("4.2 รายงานที่ 2: E-Book ขายดีที่สุด 5 อันดับแรก (Top-Selling Books)", False, 0.22, "12", "4.2 รายงานที่ 2: E-Book ขายดีที่สุด 5 อันดับแรก"),
+        ("4.3 รายงานที่ 3: ยอดขายตามหมวดหมู่ (Sales by Category)", False, 0.22, "13", "4.3 รายงานที่ 3: ยอดขายตามหมวดหมู่"),
+        ("4.4 รายงานที่ 4: พฤติกรรมลูกค้าและยอดซื้อสะสม (Customer Lifetime Value)", False, 0.22, "14", "4.4 รายงานที่ 4: พฤติกรรมลูกค้าและยอดซื้อสะสม"),
+        ("บทที่ 5: การพัฒนาเว็บแอปพลิเคชันและการควบคุมสิทธิ์การเข้าถึง", True, 0, "15", "บทที่ 5: การพัฒนาเว็บแอปพลิเคชันและการควบคุมสิทธิ์การเข้าถึง"),
+        ("5.1 สถาปัตยกรรมระบบและความปลอดภัยการเข้าสู่ระบบ", False, 0.22, "15", "5.1 สถาปัตยกรรมระบบและความปลอดภัยการเข้าสู่ระบบ"),
+        ("5.2 การแก้ไขข้อมูลพื้นฐานและการยืนยันตัวตนบัญชีธนาคาร", False, 0.22, "15", "5.2 การแก้ไขข้อมูลพื้นฐานและการยืนยันตัวตน"),
+        ("5.3 การควบคุมสิทธิ์การเข้าถึง (Role-Based Access Control: RBAC)", False, 0.22, "16", "5.3 การควบคุมสิทธิ์การเข้าถึง (Role-Based Access Control: RBAC)"),
+        ("5.4 การจัดการหมวดหมู่และการจัดการร้านค้าหลังบ้าน", False, 0.22, "17", "5.4 การจัดการหมวดหมู่และการจัดการร้านค้าหลังบ้าน"),
+        ("5.5 หน้าจอรายงานวิเคราะห์ธุรกิจและการส่งออกไฟล์ CSV", False, 0.22, "18", "5.5 หน้าจอรายงานวิเคราะห์ธุรกิจและการส่งออกไฟล์ CSV"),
+        ("บทที่ 6: แผนการทดสอบและประกันคุณภาพข้อมูล (Testing & QA)", True, 0, "19", "บทที่ 6: แผนการทดสอบและประกันคุณภาพข้อมูล (Testing & QA)"),
+        ("บทที่ 7: การประยุกต์ใช้ปัญญาประดิษฐ์อย่างรับผิดชอบ (AI Usage Log)", True, 0, "20", "บทที่ 7: การประยุกต์ใช้ปัญญาประดิษฐ์อย่างรับผิดชอบ (AI Usage Log)"),
+        ("7.1 บันทึกการใช้งาน AI ในการพัฒนา (AI Prompt & Usage Log)", False, 0.22, "20", "7.1 บันทึกการใช้งาน AI ในการพัฒนา"),
+        ("7.2 ข้อเสนอแนะของ AI ที่นักศึกษาตัดสินใจปฏิเสธ (Rejected AI Proposals)", False, 0.22, "20", "7.2 ข้อเสนอแนะของ AI ที่นักศึกษาตัดสินใจปฏิเสธ"),
+        ("7.3 จริยธรรมข้อมูลส่วนบุคคล (PDPA Consideration)", False, 0.22, "21", "7.3 จริยธรรมข้อมูลส่วนบุคคล (PDPA Consideration)"),
+        ("บทที่ 8: สรุปผลการดำเนินงานและข้อเสนอแนะ", True, 0, "22", "บทที่ 8: สรุปผลการดำเนินงานและข้อเสนอแนะ"),
+        ("8.1 สรุปผลสัมฤทธิ์ของโครงงาน", False, 0.22, "22", "8.1 สรุปผลสัมฤทธิ์ของโครงงาน"),
+        ("8.2 ข้อเสนอแนะในการพัฒนาต่อยอด", False, 0.22, "22", "8.2 ข้อเสนอแนะในการพัฒนาต่อยอด"),
+        ("ภาคผนวก", True, 0, "23", "ภาคผนวก"),
+        ("ภาคผนวก ก: รายการตรวจสอบความพร้อมก่อนส่งงาน (Submission Checklist)", False, 0.22, "23", "ภาคผนวก ก: รายการตรวจสอบความพร้อมก่อนส่งงาน"),
+        ("ภาคผนวก ข: การเชื่อมโยงโครงงานกับวิชาวิศวกรรมซอฟต์แวร์ (SWE Inventory System)", False, 0.22, "23", "ภาคผนวก ข: การเชื่อมโยงโครงงานกับวิชาวิศวกรรมซอฟต์แวร์"),
     ]
-    tbl_toc = doc.add_table(rows=1, cols=3)
-    style_table(tbl_toc, [2.1, 3.5, 0.6], toc_headers, toc_data, header_bg="1E3A8A")
+    
+    tbl_toc = doc.add_table(rows=1, cols=2)
+    tbl_toc.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tbl_toc.autofit = False
+    tbl_toc.allow_autofit = False
+    
+    tblPr = tbl_toc._tbl.tblPr
+    tblW = parse_xml(f'<w:tblW {nsdecls("w")} w:w="{int(6.25 * 1440)}" w:type="dxa"/>')
+    tblPr.append(tblW)
+    
+    set_table_borders(tbl_toc, border_color="E2E8F0", top_bottom_color="1E3A8A", sz="4")
+    
+    hdr_row = tbl_toc.rows[0]
+    hdr_row.cells[0].text = "ลำดับบท / หัวข้อ"
+    hdr_row.cells[1].text = "หน้า"
+    for idx_c, (c, align) in enumerate([(hdr_row.cells[0], WD_ALIGN_PARAGRAPH.LEFT), (hdr_row.cells[1], WD_ALIGN_PARAGRAPH.RIGHT)]):
+        set_cell_background(c, "1E3A8A")
+        tcMar = parse_xml(f'<w:tcMar {nsdecls("w")}><w:top w:w="30" w:type="dxa"/><w:bottom w:w="30" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>')
+        c._tc.get_or_add_tcPr().append(tcMar)
+        c.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        p = c.paragraphs[0]
+        p.alignment = align
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
+        p.paragraph_format.line_spacing = 1.0
+        for r in p.runs:
+            set_run_font(r, 'TH Sarabun New', size_pt=12.0, bold=True, color_rgb=RGBColor(255, 255, 255))
+            
+    for title, is_bold, indent_val, p_num, _ in toc_items:
+        row = tbl_toc.add_row()
+        c0, c1 = row.cells[0], row.cells[1]
+        
+        bg = "FFFFFF" if is_bold else "F8FAFC"
+        shd0 = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{bg}"/>')
+        shd1 = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{bg}"/>')
+        c0._tc.get_or_add_tcPr().append(shd0)
+        c1._tc.get_or_add_tcPr().append(shd1)
+        
+        tcMar0 = parse_xml(f'<w:tcMar {nsdecls("w")}><w:top w:w="12" w:type="dxa"/><w:bottom w:w="12" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>')
+        c0._tc.get_or_add_tcPr().append(tcMar0)
+        tcMar1 = parse_xml(f'<w:tcMar {nsdecls("w")}><w:top w:w="12" w:type="dxa"/><w:bottom w:w="12" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>')
+        c1._tc.get_or_add_tcPr().append(tcMar1)
+        
+        c0.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        c1.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        
+        p0 = c0.paragraphs[0]
+        p0.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        p0.paragraph_format.space_before = Pt(0)
+        p0.paragraph_format.space_after = Pt(0)
+        p0.paragraph_format.line_spacing = 1.0
+        if indent_val > 0:
+            p0.paragraph_format.left_indent = Inches(indent_val)
+        r0 = p0.add_run(title)
+        set_run_font(r0, 'TH Sarabun New', size_pt=11.0 if is_bold else 10.0, bold=is_bold, 
+                     color_rgb=RGBColor(15, 23, 42) if is_bold else RGBColor(51, 65, 85))
+        
+        p1 = c1.paragraphs[0]
+        p1.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        p1.paragraph_format.space_before = Pt(0)
+        p1.paragraph_format.space_after = Pt(0)
+        p1.paragraph_format.line_spacing = 1.0
+        r1 = p1.add_run(str(p_num))
+        set_run_font(r1, 'TH Sarabun New', size_pt=10.5 if is_bold else 10.0, bold=is_bold,
+                     color_rgb=RGBColor(30, 58, 138) if is_bold else RGBColor(71, 85, 105))
 
-    doc.add_page_break()
+    for row in tbl_toc.rows:
+        row.cells[0].width = Inches(5.55)
+        row.cells[1].width = Inches(0.70)
+        for i, w in enumerate([5.55, 0.70]):
+            tcPr = row.cells[i]._tc.get_or_add_tcPr()
+            tcW = parse_xml(f'<w:tcW {nsdecls("w")} w:w="{int(w * 1440)}" w:type="dxa"/>')
+            tcPr.append(tcW)
+
+    # Section break: Start Section 2 (Body) starting at Executive Summary with Page 1
+    sec2 = doc.add_section(WD_SECTION_START.NEW_PAGE)
+    sec2.header.is_linked_to_previous = False
+    sec2.footer.is_linked_to_previous = False
+    sec2.different_first_page_header_footer = False
+    sec2.page_width = Inches(8.27)
+    sec2.page_height = Inches(11.69)
+    sec2.top_margin = Inches(1.0)
+    sec2.bottom_margin = Inches(1.0)
+    sec2.left_margin = Inches(1.0)
+    sec2.right_margin = Inches(1.0)
+    
+    # Restart page numbering at 1 for Section 2
+    sectPr = sec2._sectPr
+    pgNumType = parse_xml(f'<w:pgNumType {nsdecls("w")} w:start="1"/>')
+    sectPr.append(pgNumType)
+    
+    # Section 2 Header: ONLY page number (PAGE), right-aligned, NO text!
+    p_hdr2 = sec2.header.paragraphs[0]
+    p_hdr2.text = ""
+    p_hdr2.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p_hdr2.paragraph_format.space_before = Pt(0)
+    p_hdr2.paragraph_format.space_after = Pt(0)
+    
+    fld = parse_xml(
+        f'<w:fldSimple {nsdecls("w")} w:instr="PAGE">\n'
+        f'  <w:r>\n'
+        f'    <w:rPr>\n'
+        f'      <w:rFonts w:ascii="TH Sarabun New" w:hAnsi="TH Sarabun New" w:cs="TH Sarabun New" w:eastAsia="TH Sarabun New"/>\n'
+        f'      <w:sz w:val="28"/>\n'
+        f'      <w:color w:val="475569"/>\n'
+        f'    </w:rPr>\n'
+        f'    <w:t>1</w:t>\n'
+        f'  </w:r>\n'
+        f'</w:fldSimple>'
+    )
+    p_hdr2._p.append(fld)
+    
+    # Section 2 Footer: Clean and empty (no duplicate page numbers)
+    p_ftr2 = sec2.footer.paragraphs[0]
+    p_ftr2.text = ""
+    for child in list(p_ftr2._p):
+        if child.tag.endswith('fldSimple') or child.tag.endswith('r'):
+            p_ftr2._p.remove(child)
 
     # =========================================================================
     # 🌟 บทสรุปผู้บริหาร (Executive Summary)
@@ -914,6 +1063,7 @@ ORDER BY total_spent DESC;"""
     # 🌟 บทที่ 7: การประยุกต์ใช้ปัญญาประดิษฐ์อย่างรับผิดชอบ
     # =========================================================================
     add_styled_heading(doc, "บทที่ 7: การประยุกต์ใช้ปัญญาประดิษฐ์อย่างรับผิดชอบ (AI Usage Log)", level=1)
+    add_styled_heading(doc, "7.1 บันทึกการใช้งาน AI ในการพัฒนา (AI Prompt & Usage Log)", level=2)
     add_styled_paragraph(doc, 
         "ตามข้อกำหนดใบงานข้อ 12 นักศึกษาได้บันทึกการประยุกต์ใช้ AI เพื่อเป็นหลักฐานความโปร่งใสและแสดงการตรวจทานด้วยตนเองดังนี้:"
     )
@@ -984,20 +1134,69 @@ ORDER BY total_spent DESC;"""
         "ตามประกาศของ อ.ดร.ปิยะนุช ตั้งกิตติพล ในวิชาวิศวกรรมซอฟต์แวร์ โครงงานฝั่งฐานข้อมูลนี้ได้รับการจัดเก็บแยกเป็น Repository ใหม่บน GitHub โดยเฉพาะ เพื่อส่งให้อาจารย์ประภาส ผ่องสนาม และเชื่อมโยงข้ามไปยัง Repository โครงงาน Inventory System ของวิชา SWE ด้วยลิงก์อ้างอิงข้ามหากันในไฟล์ README.md และ PROJECT.md อย่างถูกต้องตามแนวทางปฏิบัติของหลักสูตรวิศวกรรมคอมพิวเตอร์ มทร.อีสาน วิทยาเขตขอนแก่น"
     )
 
-    # Save to multiple naming conventions
+    # First Pass Save: DOCX
     main_docx = r"d:\learnCode\BookSell-DatabaseProject\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.docx"
     doc.save(main_docx)
-    print(f"Saved DOCX: {main_docx} ({os.path.getsize(main_docx):,} bytes)")
+    print(f"First-pass DOCX saved: {main_docx} ({os.path.getsize(main_docx):,} bytes)")
 
-    desktop_docx = r"C:\Users\First 1\Desktop\Db\01_เอกสารรายงาน-MiniProject-Database\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.docx"
-    shutil.copy2(main_docx, desktop_docx)
-    print(f"Synced DOCX to: {desktop_docx}")
-
+    # Two-Pass Automation: Use Word COM to query exact page numbers of all headings in Section 2
     try:
         import win32com.client
         word = win32com.client.Dispatch("Word.Application")
         word.Visible = False
         doc_com = word.Documents.Open(os.path.abspath(main_docx))
+        doc_com.Repaginate()
+        
+        # Build mapping of search keys to actual Section 2 page number
+        heading_pages = {}
+        sec2_com = doc_com.Sections(2)
+        for para in sec2_com.Range.Paragraphs:
+            t = para.Range.Text.strip()
+            for title, is_bold, indent_val, p_num, skey in toc_items:
+                if skey in t and skey not in heading_pages:
+                    # 1 = wdActiveEndAdjustedPageNumber (Section 2 page number!)
+                    pg = para.Range.Information(1)
+                    heading_pages[skey] = str(pg)
+                    break
+        
+        doc_com.Close(False)
+        word.Quit()
+        print("Scanned exact Section 2 heading page numbers via Word COM:")
+        for k, v in heading_pages.items():
+            print(f"  {k[:40]} -> Page {v}")
+            
+        # Update Table of Contents table with exact scanned page numbers
+        for r_idx, (title, is_bold, indent_val, p_num, skey) in enumerate(toc_items):
+            actual_pg = heading_pages.get(skey, p_num)
+            row = tbl_toc.rows[r_idx + 1]
+            p1 = row.cells[1].paragraphs[0]
+            p1.text = ""
+            r1 = p1.add_run(actual_pg)
+            set_run_font(r1, 'TH Sarabun New', size_pt=10.5 if is_bold else 10.0, bold=is_bold,
+                         color_rgb=RGBColor(30, 58, 138) if is_bold else RGBColor(71, 85, 105))
+            
+        # Final Save DOCX
+        doc.save(main_docx)
+        print(f"Final DOCX updated with exact TOC page numbers: {main_docx}")
+    except Exception as e:
+        print("Word COM scanning note:", e)
+
+    # Copy DOCX to Desktop
+    desktop_docx = r"C:\Users\First 1\Desktop\Db\01_เอกสารรายงาน-MiniProject-Database\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.docx"
+    try:
+        os.makedirs(os.path.dirname(desktop_docx), exist_ok=True)
+        shutil.copy2(main_docx, desktop_docx)
+        print(f"Synced DOCX to: {desktop_docx}")
+    except Exception as e:
+        print("Desktop sync note:", e)
+
+    # Export PDF via Word COM
+    try:
+        import win32com.client
+        word = win32com.client.Dispatch("Word.Application")
+        word.Visible = False
+        doc_com = word.Documents.Open(os.path.abspath(main_docx))
+        doc_com.Repaginate()
         main_pdf = r"d:\learnCode\BookSell-DatabaseProject\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.pdf"
         desktop_pdf = r"C:\Users\First 1\Desktop\Db\01_เอกสารรายงาน-MiniProject-Database\รายงาน_Mini_Project_Database_ร้านขาย_E-Book_2026.pdf"
         doc_com.SaveAs(os.path.abspath(main_pdf), FileFormat=17)
@@ -1006,7 +1205,7 @@ ORDER BY total_spent DESC;"""
         shutil.copy2(main_pdf, desktop_pdf)
         print(f"Exported and synced PDF: {main_pdf}")
     except Exception as e:
-        print("Word COM note:", e)
+        print("Word COM PDF export note:", e)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 /.pnp
 .pnp.js
@@ -37,3 +37,17 @@ scratch/
 
 # Study Guide & Preparation Files (Local only)
 STEP_*.md
+DATABASE_AND_SQL_MASTER_GUIDE.md
+
+# Backups & Archives
+backup*/
+*_backup.*
+*_BACKUP*
+
+# Local Scratch, Build Helpers & Temp Files
+scratch*
+temp_*
+*.tmp
+~$*
+~*
+build_eval_doc.py
