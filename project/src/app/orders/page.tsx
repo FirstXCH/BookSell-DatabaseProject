@@ -71,7 +71,7 @@ export default function OrdersPage() {
 ผู้ดาวน์โหลด: ${currentUser?.full_name} (${currentUser?.email})
 วันที่ดาวน์โหลด: ${new Date().toLocaleDateString("th-TH")}
 =====================================================
-หมายเหตุ: จำกัดสิทธิ์การดาวน์โหลดสูงสุด 5 ครั้งตามข้อกำหนดความปลอดภัย
+หมายเหตุ: จำกัดสิทธิ์การดาวน์โหลด 1 ครั้งตามข้อกำหนดความปลอดภัย
 =====================================================`;
       const blob = new Blob([sampleContent], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -250,7 +250,7 @@ export default function OrdersPage() {
                   {order.items?.map((item) => {
                     const dlLink = order.download_links?.find((dl) => dl.book_id === item.book_id);
                     const currentDl = dlLink ? dlLink.download_count : 0;
-                    const maxDl = dlLink ? dlLink.max_downloads : 5;
+                    const maxDl = dlLink ? dlLink.max_downloads : 1;
                     const isQuotaExceeded = currentDl >= maxDl;
 
                     return (

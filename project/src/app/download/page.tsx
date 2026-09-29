@@ -96,7 +96,7 @@ function DownloadContent() {
         order_id: 48,
         book_id: 1,
         download_count: 0,
-        max_downloads: 5,
+        max_downloads: 1,
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
       setBook(mockBooks[0]);
@@ -113,7 +113,7 @@ function DownloadContent() {
     if (!downloadLink || !book) return;
 
     const currentCount = downloadLink.download_count || 0;
-    const maxDl = downloadLink.max_downloads || 5;
+    const maxDl = downloadLink.max_downloads || 1;
 
     if (currentCount >= maxDl) {
       alert(`คุณได้ดาวน์โหลดครบโควตาสูงสุดแล้ว (${currentCount}/${maxDl} ครั้ง) ตามเงื่อนไขความปลอดภัย`);
@@ -151,7 +151,7 @@ function DownloadContent() {
 =====================================================
 🔒 ข้อกำหนดความปลอดภัยของระบบ (Security Policy):
 1. ไฟล์นี้มีลิขสิทธิ์ถูกต้อง สำหรับการใช้งานส่วนบุคคลเท่านั้น
-2. ลิงก์นี้จำกัดการดาวน์โหลดสูงสุด 5 ครั้ง (One-Time / Quota Controlled)
+2. ลิงก์นี้จำกัดการดาวน์โหลด 1 ครั้ง (Single Use Download)
 3. มีการบันทึก Audit Log ลงฐานข้อมูล Supabase ทุกครั้งที่กดดาวน์โหลด
 =====================================================`;
       const blob = new Blob([sampleContent], { type: "text/plain;charset=utf-8" });
@@ -199,7 +199,7 @@ function DownloadContent() {
   }
 
   const currentCount = downloadLink.download_count || 0;
-  const maxDl = downloadLink.max_downloads || 5;
+  const maxDl = downloadLink.max_downloads || 1;
   const isExpired = downloadLink.expires_at && new Date(downloadLink.expires_at) < new Date();
   const isQuotaExceeded = currentCount >= maxDl;
   const remaining = Math.max(0, maxDl - currentCount);
@@ -301,7 +301,7 @@ function DownloadContent() {
               <span>ครบโควตาสูงสุดแล้ว ({currentCount}/{maxDl} ครั้ง)</span>
             </div>
             <p className="text-neutral-400">
-              ระบบจำกัดสิทธิ์การดาวน์โหลดสูงสุด 5 ครั้งเพื่อป้องกันการทำซ้ำและส่งต่อไฟล์ตามกฎหมายลิขสิทธิ์
+              ระบบจำกัดสิทธิ์การดาวน์โหลด 1 ครั้งเพื่อป้องกันการทำซ้ำและส่งต่อไฟล์ตามกฎหมายลิขสิทธิ์
             </p>
             <button
               disabled
@@ -320,7 +320,7 @@ function DownloadContent() {
           >
             <Download className="h-4 w-4" />
             <span>
-              {downloading ? "กำลังดาวน์โหลดไฟล์..." : `คลิกดาวน์โหลด e-Book (ครั้งที่ ${currentCount + 1}/${maxDl})`}
+              {downloading ? "กำลังดาวน์โหลดไฟล์..." : (maxDl === 1 ? "คลิกดาวน์โหลด e-Book (จำกัด 1 ครั้ง)" : `คลิกดาวน์โหลด e-Book (ครั้งที่ ${currentCount + 1}/${maxDl})`)}
             </span>
           </button>
         )}

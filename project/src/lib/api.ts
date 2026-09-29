@@ -450,7 +450,7 @@ export async function updateOrderStatus(
                 order_id: orderId,
                 book_id: it.book_id,
                 download_count: 0,
-                max_downloads: 5 * (it.quantity || 1),
+                max_downloads: it.quantity || 1,
                 expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               }))
           : [],
@@ -513,7 +513,7 @@ export async function updateOrderStatus(
                 order_id: orderId,
                 book_id: it.book_id,
                 download_count: 0,
-                max_downloads: 5 * (it.quantity || 1),
+                max_downloads: it.quantity || 1,
                 expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               }));
 
@@ -569,7 +569,7 @@ export async function resendOrderEmail(orderId: number): Promise<{ success: bool
 }
 
 /**
- * บันทึกการดาวน์โหลด และตรวจสอบโควตาดาวน์โหลด (จำกัด max_downloads เช่น 5 ครั้ง)
+ * บันทึกการดาวน์โหลด และตรวจสอบโควตาดาวน์โหลด (จำกัด 1 ครั้งต่อเล่ม)
  */
 export async function recordDownload(
   orderId: number,
@@ -591,7 +591,7 @@ export async function recordDownload(
 
       if (!error && links && links.length > 0) {
         const link = links[0];
-        const maxDl = link.max_downloads || 5;
+        const maxDl = link.max_downloads || 1;
         const currentCount = link.download_count || 0;
 
         // ตรวจสอบวันหมดอายุ (expires_at)
@@ -653,14 +653,14 @@ export async function recordDownload(
         order_id: orderId,
         book_id: it.book_id,
         download_count: 0,
-        max_downloads: 5,
+        max_downloads: it.quantity || 1,
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       }));
     }
 
     const dlLink = allOrders[orderIdx].download_links!.find((l) => l.book_id === bookId);
     if (dlLink) {
-      const maxDl = dlLink.max_downloads || 5;
+      const maxDl = dlLink.max_downloads || 1;
       if (dlLink.download_count >= maxDl) {
         return {
           success: false,

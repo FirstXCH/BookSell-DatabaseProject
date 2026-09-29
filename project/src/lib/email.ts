@@ -44,11 +44,11 @@ export function generateOrderEmailHtml(payload: SendOrderEmailPayload): string {
           </div>
           <div style="margin-top: 10px;">
             <a href="${downloadUrl}" target="_blank" style="display: inline-block; background-color: #e5a93c; color: #0d0f11; font-weight: bold; font-size: 13px; text-decoration: none; padding: 10px 18px; border-radius: 6px;">
-              📥 คลิกเพื่อดาวน์โหลด e-Book (จำกัด 5 ครั้ง)
+              📥 คลิกเพื่อดาวน์โหลด e-Book (จำกัด 1 ครั้ง)
             </a>
           </div>
           <div style="font-size: 11px; color: #f59e0b; margin-top: 8px;">
-            🔒 เงื่อนไขความปลอดภัย: จำกัดสิทธิ์การดาวน์โหลดสูงสุด 5 ครั้ง • ลิงก์มีอายุ 30 วัน
+            🔒 เงื่อนไขความปลอดภัย: จำกัดสิทธิ์การดาวน์โหลด 1 ครั้ง (Single Use) • ลิงก์มีอายุ 30 วัน
           </div>
         </div>
       `;

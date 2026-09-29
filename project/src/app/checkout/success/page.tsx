@@ -109,7 +109,7 @@ function SuccessContent() {
 สถานะการชำระเงิน: ได้รับการตรวจสอบและยืนยันแล้ว (Verified)
 =====================================================
 ขอบคุณที่สนับสนุนผลงานหนังสือดิจิทัลที่มีลิขสิทธิ์ถูกต้อง
-(จำกัดสิทธิ์การดาวน์โหลดสูงสุด 5 ครั้งตามมาตรการความปลอดภัย)
+(จำกัดสิทธิ์การดาวน์โหลด 1 ครั้งตามมาตรการความปลอดภัย)
 =====================================================`;
         const blob = new Blob([sampleContent], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
@@ -267,7 +267,7 @@ function SuccessContent() {
             order.items.map((item) => {
               const dlLink = order?.download_links?.find((dl) => dl.book_id === item.book_id);
               const currentDl = dlLink ? dlLink.download_count : 0;
-              const maxDl = dlLink ? dlLink.max_downloads : 5;
+              const maxDl = dlLink ? dlLink.max_downloads : 1;
               const isQuotaExceeded = currentDl >= maxDl;
 
               return (
