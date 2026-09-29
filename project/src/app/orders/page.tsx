@@ -14,7 +14,7 @@ import {
   ExternalLink,
   User,
 } from "lucide-react";
-import { getOrders, getDemoCurrentUser, formatPrice } from "@/lib/api";
+import { getOrders, getDemoCurrentUser, formatPrice, recordDownload } from "@/lib/api";
 import type { Order, User as UserType } from "@/lib/types";
 
 export default function OrdersPage() {
@@ -24,14 +24,17 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [downloadNotification, setDownloadNotification] = useState<string | null>(null);
 
+  const fetchUserOrders = async (userId: number) => {
+    const data = await getOrders(userId);
+    setOrders(data);
+    setLoading(false);
+  };
+
   useEffect(() => {
     const user = getDemoCurrentUser();
     setCurrentUser(user);
     if (user) {
-      getOrders(user.id).then((data) => {
-        setOrders(data);
-        setLoading(false);
-      });
+      fetchUserOrders(user.id);
     } else {
       setOrders([]);
       setLoading(false);
@@ -46,16 +49,29 @@ export default function OrdersPage() {
     return true;
   });
 
-  const handleDownload = (title: string, orderId: number) => {
-    setDownloadNotification(`กำลังดาวน์โหลด "${title}"...`);
+  const handleDownload = async (title: string, orderId: number, bookId: number) => {
+    setDownloadNotification(`กำลังตรวจสอบสิทธิ์ดาวน์โหลด "${title}"...`);
+    const res = await recordDownload(orderId, bookId);
+
+    if (!res.success) {
+      alert(res.message);
+      setDownloadNotification(res.message);
+      setTimeout(() => setDownloadNotification(null), 4000);
+      return;
+    }
+
+    setDownloadNotification(`กำลังดาวน์โหลด "${title}" (${res.message})...`);
     try {
       const sampleContent = `=====================================================
 📚 Lampara Books - Digital E-Book Download
 =====================================================
 ชื่อหนังสือ: ${title}
 เลขที่คำสั่งซื้อ: #${orderId}
+จำนวนครั้งที่ดาวน์โหลด: ${res.download_count}/${res.max_downloads}
 ผู้ดาวน์โหลด: ${currentUser?.full_name} (${currentUser?.email})
 วันที่ดาวน์โหลด: ${new Date().toLocaleDateString("th-TH")}
+=====================================================
+หมายเหตุ: จำกัดสิทธิ์การดาวน์โหลดสูงสุด 5 ครั้งตามข้อกำหนดความปลอดภัย
 =====================================================`;
       const blob = new Blob([sampleContent], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -67,6 +83,10 @@ export default function OrdersPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {}
+
+    if (currentUser) {
+      await fetchUserOrders(currentUser.id);
+    }
 
     setTimeout(() => setDownloadNotification(null), 3000);
   };
@@ -227,47 +247,61 @@ export default function OrdersPage() {
 
                 {/* Items in order */}
                 <div className="mt-4 space-y-3">
-                  {order.items?.map((item) => (
-                    <div
-                      key={item.book_id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-[var(--radius-md)] bg-[var(--color-surface-2)] p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-[var(--color-surface)] text-[var(--color-primary)] border border-[var(--color-line)]">
-                          <BookOpen className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-[var(--color-ink)]">
-                            {item.title}
-                          </p>
-                          <p className="text-[11px] text-[var(--color-muted)]">
-                            จำนวน {item.quantity} เล่ม • เล่มละ {formatPrice(item.price_at_time)}
-                          </p>
-                        </div>
-                      </div>
+                  {order.items?.map((item) => {
+                    const dlLink = order.download_links?.find((dl) => dl.book_id === item.book_id);
+                    const currentDl = dlLink ? dlLink.download_count : 0;
+                    const maxDl = dlLink ? dlLink.max_downloads : 5;
+                    const isQuotaExceeded = currentDl >= maxDl;
 
-                      {/* Download Button Guard */}
-                      {isConfirmed ? (
-                        <button
-                          type="button"
-                          onClick={() => handleDownload(item.title, order.id)}
-                          className="btn-primary text-xs py-1.5 px-3 shrink-0"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          <span>ดาวน์โหลด e-Book</span>
-                        </button>
-                      ) : isPending ? (
-                        <div className="flex items-center gap-1.5 text-[11px] text-amber-400 shrink-0">
-                          <Lock className="h-3.5 w-3.5" />
-                          <span>รอแอดมินอนุมัติสลิป</span>
+                    return (
+                      <div
+                        key={item.book_id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-[var(--radius-md)] bg-[var(--color-surface-2)] p-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-[var(--color-surface)] text-[var(--color-primary)] border border-[var(--color-line)]">
+                            <BookOpen className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-[var(--color-ink)]">
+                              {item.title}
+                            </p>
+                            <p className="text-[11px] text-[var(--color-muted)]">
+                              จำนวน {item.quantity} เล่ม • เล่มละ {formatPrice(item.price_at_time)}
+                            </p>
+                          </div>
                         </div>
-                      ) : (
-                        <span className="text-[11px] text-[var(--color-muted)] shrink-0">
-                          ไม่สามารถดาวน์โหลดได้
-                        </span>
-                      )}
-                    </div>
-                  ))}
+
+                        {/* Download Button Guard */}
+                        {isConfirmed ? (
+                          isQuotaExceeded ? (
+                            <div className="flex items-center gap-1.5 rounded bg-rose-500/10 border border-rose-500/30 px-2.5 py-1.5 text-[11px] font-medium text-rose-400 shrink-0" title="ดาวน์โหลดครบโควตาสูงสุดแล้ว">
+                              <Lock className="h-3.5 w-3.5" />
+                              <span>ครบโควตา ({currentDl}/{maxDl} ครั้ง)</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleDownload(item.title, order.id, item.book_id)}
+                              className="btn-primary text-xs py-1.5 px-3 shrink-0 flex items-center gap-1.5"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              <span>ดาวน์โหลด ({currentDl}/{maxDl})</span>
+                            </button>
+                          )
+                        ) : isPending ? (
+                          <div className="flex items-center gap-1.5 text-[11px] text-amber-400 shrink-0">
+                            <Lock className="h-3.5 w-3.5" />
+                            <span>รอแอดมินอนุมัติสลิป</span>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-[var(--color-muted)] shrink-0">
+                            ไม่สามารถดาวน์โหลดได้
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Footer notes */}

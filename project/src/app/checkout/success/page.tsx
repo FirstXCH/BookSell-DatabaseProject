@@ -13,7 +13,7 @@ import {
   ShieldCheck,
   RefreshCw,
 } from "lucide-react";
-import { getOrder, formatPrice, getDemoCurrentUser } from "@/lib/api";
+import { getOrder, formatPrice, getDemoCurrentUser, recordDownload } from "@/lib/api";
 import type { Order, User as UserType } from "@/lib/types";
 
 export default function CheckoutSuccessPage() {
@@ -39,38 +39,61 @@ function SuccessContent() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [downloadNotification, setDownloadNotification] = useState<string | null>(null);
 
-  const fetchOrderData = () => {
-    setLoading(true);
-    if (orderId) {
-      getOrder(Number(orderId)).then((data) => {
-        setOrder(data);
-        setLoading(false);
-      });
-    } else {
-      getOrder(0).then((data) => {
-        setOrder(data);
-        setLoading(false);
-      });
-    }
+  const fetchOrderData = (silent = false) => {
+    if (!silent) setLoading(true);
+    const idToFetch = orderId ? Number(orderId) : 0;
+    getOrder(idToFetch).then((data) => {
+      setOrder(data);
+      if (!silent) setLoading(false);
+    });
   };
 
   useEffect(() => {
     fetchOrderData();
     setCurrentUser(getDemoCurrentUser());
+
+    // รีเฟรชอัตโนมัติเมื่อผู้ใช้สลับแท็บกลับมาหน้านี้
+    const handleFocus = () => {
+      fetchOrderData(true);
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [orderId]);
+
+  // หากคำสั่งซื้อยังเป็น Pending ให้โพลล์ตรวจสถานะทุก 3 วินาทีแบบเงียบๆ เพื่อให้อัปเดตทันทีที่แอดมินกดอนุมัติ
+  useEffect(() => {
+    if (!order || order.status !== "Pending") return;
+    const timer = setInterval(() => {
+      fetchOrderData(true);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [order?.status, orderId]);
 
   const isConfirmed = order?.status === "Confirmed" || order?.status === "Completed";
 
-  const handleDownload = (bookId: number, title: string) => {
+  const handleDownload = async (bookId: number, title: string) => {
     if (!isConfirmed) {
       alert("คำสั่งซื้อนี้ยังไม่ได้รับการอนุมัติจากผู้ดูแลระบบ จึงยังไม่สามารถเปิดลิงก์ดาวน์โหลดได้");
       return;
     }
 
-    setDownloadingId(bookId);
-    setDownloadNotification(`กำลังเตรียมไฟล์สำหรับ "${title}"...`);
+    if (!order) return;
 
-    setTimeout(() => {
+    setDownloadingId(bookId);
+    setDownloadNotification(`กำลังตรวจสอบสิทธิ์ดาวน์โหลด "${title}"...`);
+
+    const res = await recordDownload(order.id, bookId);
+    if (!res.success) {
+      alert(res.message);
+      setDownloadNotification(res.message);
+      setDownloadingId(null);
+      setTimeout(() => setDownloadNotification(null), 4000);
+      return;
+    }
+
+    setDownloadNotification(`กำลังเตรียมไฟล์สำหรับ "${title}" (ครั้งที่ ${res.download_count}/${res.max_downloads})...`);
+
+    setTimeout(async () => {
       try {
         const sampleContent = `=====================================================
 📚 Lampara Books - Digital E-Book Download
@@ -78,11 +101,12 @@ function SuccessContent() {
 ชื่อหนังสือ: ${title}
 เลขที่คำสั่งซื้อ: #${order?.id}
 ผู้สั่งซื้อ: ${order?.checkout_name} (${order?.checkout_email})
-วันที่อนุมัติ: ${new Date().toLocaleDateString("th-TH")}
+จำนวนครั้งที่ดาวน์โหลด: ${res.download_count}/${res.max_downloads}
+วันที่ดาวน์โหลด: ${new Date().toLocaleDateString("th-TH")}
 สถานะการชำระเงิน: ได้รับการตรวจสอบและยืนยันแล้ว (Verified)
 =====================================================
 ขอบคุณที่สนับสนุนผลงานหนังสือดิจิทัลที่มีลิขสิทธิ์ถูกต้อง
-(ไฟล์นี้เป็นตัวอย่างสำหรับการสาธิตระบบในวิชา Database Systems)
+(จำกัดสิทธิ์การดาวน์โหลดสูงสุด 5 ครั้งตามมาตรการความปลอดภัย)
 =====================================================`;
         const blob = new Blob([sampleContent], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
@@ -95,8 +119,13 @@ function SuccessContent() {
         URL.revokeObjectURL(url);
       } catch {}
 
+      if (orderId) {
+        const updated = await getOrder(Number(orderId));
+        if (updated) setOrder(updated);
+      }
+
       setDownloadingId(null);
-      setDownloadNotification(`ดาวน์โหลดไฟล์ e-Book "${title}" เรียบร้อยแล้ว!`);
+      setDownloadNotification(`ดาวน์โหลดไฟล์ "${title}" เรียบร้อยแล้ว (${res.download_count}/${res.max_downloads} ครั้ง)`);
       setTimeout(() => setDownloadNotification(null), 4000);
     }, 600);
   };
@@ -173,7 +202,7 @@ function SuccessContent() {
             )}
             <button
               type="button"
-              onClick={fetchOrderData}
+              onClick={() => fetchOrderData(false)}
               className="ml-auto inline-flex items-center gap-1 rounded bg-[var(--color-surface-2)] px-2.5 py-1 text-[11px] text-[var(--color-ink)] hover:text-[var(--color-primary)]"
             >
               <RefreshCw className="h-3 w-3" /> รีเฟรชสถานะ
@@ -202,48 +231,62 @@ function SuccessContent() {
 
         <div className="space-y-3">
           {order?.items && order.items.length > 0 ? (
-            order.items.map((item) => (
-              <div
-                key={item.book_id}
-                className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface)] p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-surface-2)] text-[var(--color-primary)]">
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-sm font-semibold text-[var(--color-ink)]">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-[var(--color-muted)]">
-                      ราคา {formatPrice(item.price_at_time)} • จำนวน {item.quantity} เล่ม
-                    </p>
-                  </div>
-                </div>
+            order.items.map((item) => {
+              const dlLink = order?.download_links?.find((dl) => dl.book_id === item.book_id);
+              const currentDl = dlLink ? dlLink.download_count : 0;
+              const maxDl = dlLink ? dlLink.max_downloads : 5;
+              const isQuotaExceeded = currentDl >= maxDl;
 
-                {isConfirmed ? (
-                  <button
-                    type="button"
-                    onClick={() => handleDownload(item.book_id, item.title)}
-                    disabled={downloadingId === item.book_id}
-                    className="btn-primary shrink-0 text-xs py-2 px-3.5"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    {downloadingId === item.book_id ? "กำลังเตรียมไฟล์..." : "ดาวน์โหลด e-Book"}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled
-                    className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface-2)] px-3 py-2 text-xs font-medium text-[var(--color-muted)] cursor-not-allowed opacity-70"
-                    title="ต้องรอแอดมินอนุมัติสลิปก่อน"
-                  >
-                    <Lock className="h-3.5 w-3.5" />
-                    <span>รอการอนุมัติสลิป</span>
-                  </button>
-                )}
-              </div>
-            ))
+              return (
+                <div
+                  key={item.book_id}
+                  className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface)] p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-surface-2)] text-[var(--color-primary)]">
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-sm font-semibold text-[var(--color-ink)]">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-[var(--color-muted)]">
+                        ราคา {formatPrice(item.price_at_time)} • จำนวน {item.quantity} เล่ม
+                      </p>
+                    </div>
+                  </div>
+
+                  {isConfirmed ? (
+                    isQuotaExceeded ? (
+                      <div className="flex items-center gap-1.5 rounded-[var(--radius-md)] border border-rose-500/30 bg-rose-500/10 px-3.5 py-2 text-xs font-semibold text-rose-400">
+                        <Lock className="h-3.5 w-3.5" />
+                        <span>ครบโควตา ({currentDl}/{maxDl} ครั้ง)</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(item.book_id, item.title)}
+                        disabled={downloadingId === item.book_id}
+                        className="btn-primary shrink-0 text-xs py-2 px-3.5 flex items-center gap-1.5"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        {downloadingId === item.book_id ? "กำลังเตรียมไฟล์..." : `ดาวน์โหลด (${currentDl}/{maxDl})`}
+                      </button>
+                    )
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-line)] bg-[var(--color-surface-2)] px-3 py-2 text-xs font-medium text-[var(--color-muted)] cursor-not-allowed opacity-70"
+                      title="ต้องรอแอดมินอนุมัติสลิปก่อน"
+                    >
+                      <Lock className="h-3.5 w-3.5" />
+                      <span>รอการอนุมัติสลิป</span>
+                    </button>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-line)] p-6 text-center text-xs text-[var(--color-muted)]">
               กำลังโหลดรายการสินค้า...

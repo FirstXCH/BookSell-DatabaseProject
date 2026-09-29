@@ -22,6 +22,7 @@ export default function AdminOrdersPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [inspectOrder, setInspectOrder] = useState<Order | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -35,13 +36,18 @@ export default function AdminOrdersPage() {
   }, []);
 
   const handleStatusChange = async (orderId: number, status: "Confirmed" | "Cancelled" | "Pending") => {
-    await updateOrderStatus(orderId, status);
-    setNotification(`อัปเดตคำสั่งซื้อ #${orderId} เป็นสถานะ "${status}" เรียบร้อยแล้ว`);
-    await loadOrders();
-    if (inspectOrder && inspectOrder.id === orderId) {
-      setInspectOrder((prev) => (prev ? { ...prev, status } : null));
+    setIsUpdating(true);
+    try {
+      await updateOrderStatus(orderId, status);
+      setNotification(`อัปเดตคำสั่งซื้อ #${orderId} เป็นสถานะ "${status}" เรียบร้อยแล้ว`);
+      await loadOrders();
+      setInspectOrder(null); // ปิดหน้าต่าง Popup ตรวจสอบทันที
+    } catch (err) {
+      console.error("Error updating order status:", err);
+    } finally {
+      setIsUpdating(false);
+      setTimeout(() => setNotification(null), 3500);
     }
-    setTimeout(() => setNotification(null), 3500);
   };
 
   const filteredOrders = orders.filter((o) => {
@@ -229,8 +235,14 @@ export default function AdminOrdersPage() {
 
       {/* Inspect Slip & Details Modal */}
       {inspectOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-lg rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[#141618] p-6 shadow-2xl space-y-5">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-fade-in"
+          onClick={() => setInspectOrder(null)}
+        >
+          <div
+            className="relative w-full max-w-lg rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[#141618] p-6 shadow-2xl space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[var(--color-line)]">
               <div>
                 <h3 className="font-display font-semibold text-lg text-[var(--color-ink)]">
@@ -293,19 +305,33 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--color-line)]">
               <button
                 type="button"
-                onClick={() => handleStatusChange(inspectOrder.id, "Cancelled")}
-                className="btn-outline text-xs text-rose-400 hover:border-rose-500/50"
+                disabled={isUpdating}
+                onClick={() => setInspectOrder(null)}
+                className="btn-outline text-xs px-3 py-2 text-[var(--color-muted)] hover:text-[var(--color-ink)]"
               >
-                ปฏิเสธ / ยกเลิก
+                ปิดหน้าต่าง
               </button>
-              <button
-                type="button"
-                onClick={() => handleStatusChange(inspectOrder.id, "Confirmed")}
-                className="btn-primary text-xs flex items-center gap-1.5"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>อนุมัติคำสั่งซื้อ (Confirm)</span>
-              </button>
+              {inspectOrder.status !== "Cancelled" && (
+                <button
+                  type="button"
+                  disabled={isUpdating}
+                  onClick={() => handleStatusChange(inspectOrder.id, "Cancelled")}
+                  className="btn-outline text-xs text-rose-400 hover:border-rose-500/50 disabled:opacity-50"
+                >
+                  {isUpdating ? "กำลังประมวลผล..." : "ปฏิเสธ / ยกเลิก"}
+                </button>
+              )}
+              {inspectOrder.status !== "Confirmed" && (
+                <button
+                  type="button"
+                  disabled={isUpdating}
+                  onClick={() => handleStatusChange(inspectOrder.id, "Confirmed")}
+                  className="btn-primary text-xs flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>{isUpdating ? "กำลังอนุมัติ..." : "อนุมัติคำสั่งซื้อ (Confirm)"}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

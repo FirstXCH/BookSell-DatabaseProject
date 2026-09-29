@@ -318,7 +318,8 @@ export async function getOrder(id: number): Promise<Order | null> {
         .select(`
           *,
           order_items (*),
-          payments (*)
+          payments (*),
+          download_links (*)
         `)
         .eq("id", id)
         .single();
@@ -336,6 +337,7 @@ export async function getOrder(id: number): Promise<Order | null> {
           items: order.order_items || [],
           email_sent: order.email_sent,
           payment: order.payments?.[0] || order.payments || null,
+          download_links: order.download_links || [],
         };
       }
     } catch {}
@@ -365,7 +367,8 @@ export async function getOrders(userId?: number): Promise<Order[]> {
       let query = supabase.from("orders").select(`
         *,
         order_items (*),
-        payments (*)
+        payments (*),
+        download_links (*)
       `).order("id", { ascending: false });
 
       if (userId) {
@@ -386,6 +389,7 @@ export async function getOrders(userId?: number): Promise<Order[]> {
           items: o.order_items || [],
           email_sent: o.email_sent,
           payment: o.payments?.[0] || o.payments || null,
+          download_links: o.download_links || [],
         }));
       }
     } catch {}
@@ -411,7 +415,7 @@ export async function getOrders(userId?: number): Promise<Order[]> {
 
 /**
  * ปรับเปลี่ยนสถานะคำสั่งซื้อ (สำหรับแอดมิน ยืนยันสลิป / ยกเลิก)
- * ถ้า 'Confirmed' จะสร้าง download_links ให้โดยอัตโนมัติ
+ * ถ้า 'Confirmed' จะสร้าง download_links ให้โดยอัตโนมัติ และอัปเดต email_sent เป็น true
  */
 export async function updateOrderStatus(
   orderId: number,
@@ -427,6 +431,7 @@ export async function updateOrderStatus(
     allOrders[orderIdx] = {
       ...allOrders[orderIdx],
       status,
+      email_sent: status === "Confirmed" ? true : allOrders[orderIdx].email_sent,
       updated_at: now,
       payment: allOrders[orderIdx].payment
         ? {
@@ -438,14 +443,16 @@ export async function updateOrderStatus(
         : undefined,
       download_links:
         status === "Confirmed"
-          ? allOrders[orderIdx].items.map((it) => ({
-              token: `tok_${orderId}_b${it.book_id}_${Math.random().toString(36).substring(2, 8)}`,
-              order_id: orderId,
-              book_id: it.book_id,
-              download_count: 0,
-              max_downloads: 5,
-              expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            }))
+          ? (allOrders[orderIdx].download_links && allOrders[orderIdx].download_links!.length > 0)
+            ? allOrders[orderIdx].download_links
+            : allOrders[orderIdx].items.map((it) => ({
+                token: `tok_${orderId}_b${it.book_id}_${Math.random().toString(36).substring(2, 8)}`,
+                order_id: orderId,
+                book_id: it.book_id,
+                download_count: 0,
+                max_downloads: 5,
+                expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              }))
           : [],
     };
     saveLocalOrders([...allOrders]);
@@ -458,9 +465,14 @@ export async function updateOrderStatus(
   // อัปเดตใน Supabase
   if (isSupabaseConfigured && supabase) {
     try {
+      const orderUpdatePayload: Record<string, any> = { status, updated_at: now };
+      if (status === "Confirmed") {
+        orderUpdatePayload.email_sent = true;
+      }
+
       await supabase
         .from("orders")
-        .update({ status, updated_at: now })
+        .update(orderUpdatePayload)
         .eq("id", orderId);
 
       try {
@@ -469,16 +481,182 @@ export async function updateOrderStatus(
           .update({
             status: status === "Confirmed" ? "Verified" : "Rejected",
             verified_at: status === "Confirmed" ? now : null,
-            note,
+            note: note || (status === "Confirmed" ? "ผู้ดูแลตรวจสอบสลิปแล้ว อนุมัติการดาวน์โหลด" : "ยกเลิกคำสั่งซื้อ"),
           })
           .eq("order_id", orderId);
       } catch {}
 
+      // ถ้าอนุมัติ (Confirmed) ให้สร้าง download_links ใน Supabase
+      if (status === "Confirmed") {
+        try {
+          const { data: existingLinks } = await supabase
+            .from("download_links")
+            .select("id")
+            .eq("order_id", orderId);
+
+          if (!existingLinks || existingLinks.length === 0) {
+            let items: { book_id: number }[] = [];
+            const { data: dbItems } = await supabase
+              .from("order_items")
+              .select("book_id")
+              .eq("order_id", orderId);
+
+            if (dbItems && dbItems.length > 0) {
+              items = dbItems;
+            } else if (orderIdx !== -1 && allOrders[orderIdx]?.items) {
+              items = allOrders[orderIdx].items;
+            }
+
+            if (items.length > 0) {
+              const linksToInsert = items.map((it) => ({
+                token: `tok_${orderId}_b${it.book_id}_${Math.random().toString(36).substring(2, 8)}`,
+                order_id: orderId,
+                book_id: it.book_id,
+                download_count: 0,
+                max_downloads: 5,
+                expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              }));
+
+              await supabase.from("download_links").insert(linksToInsert);
+            }
+          }
+        } catch (linkErr) {
+          console.error("Error creating download_links in Supabase:", linkErr);
+        }
+      }
+
       return true;
-    } catch {}
+    } catch (err) {
+      console.error("Error updating order in Supabase:", err);
+    }
   }
 
   return true;
+}
+
+/**
+ * บันทึกการดาวน์โหลด และตรวจสอบโควตาดาวน์โหลด (จำกัด max_downloads เช่น 5 ครั้ง)
+ */
+export async function recordDownload(
+  orderId: number,
+  bookId: number
+): Promise<{
+  success: boolean;
+  message: string;
+  download_count: number;
+  max_downloads: number;
+}> {
+  // 1. ตรวจสอบใน Supabase
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data: links, error } = await supabase
+        .from("download_links")
+        .select("*")
+        .eq("order_id", orderId)
+        .eq("book_id", bookId);
+
+      if (!error && links && links.length > 0) {
+        const link = links[0];
+        const maxDl = link.max_downloads || 5;
+        const currentCount = link.download_count || 0;
+
+        // ตรวจสอบวันหมดอายุ (expires_at)
+        if (link.expires_at && new Date(link.expires_at) < new Date()) {
+          return {
+            success: false,
+            message: "ลิงก์ดาวน์โหลดหมดอายุแล้ว กรุณาติดต่อผู้ดูแลระบบ",
+            download_count: currentCount,
+            max_downloads: maxDl,
+          };
+        }
+
+        // ตรวจสอบจำนวนครั้ง (download_count >= max_downloads)
+        if (currentCount >= maxDl) {
+          return {
+            success: false,
+            message: `คุณดาวน์โหลดครบโควตาสูงสุดแล้ว (${currentCount}/${maxDl} ครั้ง) ตามเงื่อนไขความปลอดภัยของระบบ`,
+            download_count: currentCount,
+            max_downloads: maxDl,
+          };
+        }
+
+        const newCount = currentCount + 1;
+        await supabase
+          .from("download_links")
+          .update({ download_count: newCount })
+          .eq("id", link.id);
+
+        // ซิงค์ลง Local Runtime / Storage ด้วย
+        const allOrders = getLocalOrders();
+        const oIdx = allOrders.findIndex((o) => o.id === orderId);
+        if (oIdx !== -1 && allOrders[oIdx].download_links) {
+          const lIdx = allOrders[oIdx].download_links!.findIndex((l) => l.book_id === bookId);
+          if (lIdx !== -1) {
+            allOrders[oIdx].download_links![lIdx].download_count = newCount;
+            saveLocalOrders([...allOrders]);
+          }
+        }
+
+        return {
+          success: true,
+          message: `ดาวน์โหลดสำเร็จ (ครั้งที่ ${newCount}/${maxDl})`,
+          download_count: newCount,
+          max_downloads: maxDl,
+        };
+      }
+    } catch (err) {
+      console.warn("Supabase recordDownload fallback:", err);
+    }
+  }
+
+  // 2. Fallback Runtime / LocalStorage
+  const allOrders = getLocalOrders();
+  const orderIdx = allOrders.findIndex((o) => o.id === orderId);
+  if (orderIdx !== -1) {
+    if (!allOrders[orderIdx].download_links || allOrders[orderIdx].download_links!.length === 0) {
+      allOrders[orderIdx].download_links = allOrders[orderIdx].items.map((it) => ({
+        token: `tok_${orderId}_b${it.book_id}_${Math.random().toString(36).substring(2, 8)}`,
+        order_id: orderId,
+        book_id: it.book_id,
+        download_count: 0,
+        max_downloads: 5,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      }));
+    }
+
+    const dlLink = allOrders[orderIdx].download_links!.find((l) => l.book_id === bookId);
+    if (dlLink) {
+      const maxDl = dlLink.max_downloads || 5;
+      if (dlLink.download_count >= maxDl) {
+        return {
+          success: false,
+          message: `คุณดาวน์โหลดครบโควตาสูงสุดแล้ว (${dlLink.download_count}/${maxDl} ครั้ง) ตามเงื่อนไขความปลอดภัยของระบบ`,
+          download_count: dlLink.download_count,
+          max_downloads: maxDl,
+        };
+      }
+      dlLink.download_count += 1;
+      saveLocalOrders([...allOrders]);
+
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(`order_${orderId}`, JSON.stringify(allOrders[orderIdx]));
+      }
+
+      return {
+        success: true,
+        message: `ดาวน์โหลดสำเร็จ (ครั้งที่ ${dlLink.download_count}/${maxDl})`,
+        download_count: dlLink.download_count,
+        max_downloads: maxDl,
+      };
+    }
+  }
+
+  return {
+    success: true,
+    message: "ดาวน์โหลดสำเร็จ",
+    download_count: 1,
+    max_downloads: 5,
+  };
 }
 
 /**
