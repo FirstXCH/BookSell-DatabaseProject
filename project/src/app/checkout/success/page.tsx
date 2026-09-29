@@ -10,6 +10,8 @@ import {
   BookOpen,
   Lock,
   ArrowRight,
+  ArrowLeft,
+  AlertCircle,
   ShieldCheck,
   RefreshCw,
   Mail,
@@ -132,6 +134,34 @@ function SuccessContent() {
       setTimeout(() => setDownloadNotification(null), 4000);
     }, 600);
   };
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-t-transparent mb-4" />
+        <p className="text-xs text-[var(--color-muted)]">กำลังดึงข้อมูลคำสั่งซื้อ...</p>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col items-center px-4 py-20 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 mb-4">
+          <AlertCircle className="h-7 w-7" />
+        </div>
+        <h2 className="font-display text-lg font-bold text-[var(--color-ink)]">
+          ไม่พบข้อมูลคำสั่งซื้อ {orderId ? `#${orderId}` : ""}
+        </h2>
+        <p className="mt-2 text-xs text-[var(--color-muted)] leading-relaxed">
+          คำสั่งซื้อนี้อาจถูกลบออกจากฐานข้อมูล หรือไม่มีอยู่ในระบบ
+        </p>
+        <Link href="/orders" className="mt-6 inline-flex btn-primary text-xs">
+          <ArrowLeft className="h-3.5 w-3.5 mr-1" /> ดูประวัติคำสั่งซื้อทั้งหมด
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-16 text-center sm:px-6">

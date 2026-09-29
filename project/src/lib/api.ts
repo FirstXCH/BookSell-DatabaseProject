@@ -366,10 +366,6 @@ export async function createOrder(payload: CheckoutPayload): Promise<Order | nul
  * ดึงข้อมูลคำสั่งซื้อตาม ID
  */
 export async function getOrder(id: number): Promise<Order | null> {
-  // ตรวจใน Runtime Memory ก่อนเสมอเพื่อให้สะท้อนสถานะสด
-  const memoryMatch = runtimeOrders.find((o) => o.id === id);
-  if (memoryMatch) return memoryMatch;
-
   if (isSupabaseConfigured && supabase && id > 0) {
     try {
       const { data: order, error } = await supabase
@@ -399,11 +395,26 @@ export async function getOrder(id: number): Promise<Order | null> {
           download_links: order.download_links || [],
         };
       }
+
+      // หาก Supabase แจ้งว่าไม่พบแถวนี้ (เช่น ถูกลบออกจากตาราง orders ในฐานข้อมูล)
+      // ให้เคลียร์ออกจากแคชในเครื่อง และคืนค่า null ทันที เพื่อไม่ให้มีออเดอร์ตกค้างหรือเด้งไป order 1
+      if (error) {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(`order_${id}`);
+        }
+        const currentOrders = getLocalOrders();
+        saveLocalOrders(currentOrders.filter((o) => o.id !== id));
+        return null;
+      }
     } catch {}
   }
 
+  // Fallback เฉพาะโหมด Local / จำลอง เมื่อไม่ได้ต่อ Supabase
+  const memoryMatch = runtimeOrders.find((o) => o.id === id);
+  if (memoryMatch) return memoryMatch;
+
   if (typeof window !== "undefined") {
-    const stored = sessionStorage.getItem(`order_${id}`) || sessionStorage.getItem("latest_order");
+    const stored = sessionStorage.getItem(`order_${id}`);
     if (stored) {
       try {
         return JSON.parse(stored);
@@ -411,16 +422,14 @@ export async function getOrder(id: number): Promise<Order | null> {
     }
   }
 
-  return mockOrders.find((o) => o.id === id) ?? mockOrders[0];
+  return mockOrders.find((o) => o.id === id) ?? null;
 }
 
 /**
  * ดึงคำสั่งซื้อทั้งหมด (สำหรับแอดมิน หรือกรองตาม user_id)
+ * หากเชื่อมต่อ Supabase ให้ถือ Supabase เป็น Single Source of Truth
  */
 export async function getOrders(userId?: number): Promise<Order[]> {
-  const localList = getLocalOrders();
-  let ordersList: Order[] = [];
-
   if (isSupabaseConfigured && supabase) {
     try {
       let query = supabase.from("orders").select(`
@@ -435,8 +444,8 @@ export async function getOrders(userId?: number): Promise<Order[]> {
       }
 
       const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        ordersList = data.map((o: any) => ({
+      if (!error && data) {
+        const ordersList: Order[] = data.map((o: any) => ({
           id: o.id,
           user_id: o.user_id,
           status: o.status,
@@ -450,26 +459,22 @@ export async function getOrders(userId?: number): Promise<Order[]> {
           payment: o.payments?.[0] || o.payments || null,
           download_links: o.download_links || [],
         }));
-      }
-    } catch {}
-  }
 
-  if (ordersList.length === 0) {
-    ordersList = localList;
-  } else {
-    // ผสานรายการคำสั่งซื้อจาก Local ที่ยังไม่มีใน Supabase หรือเพิ่งสั่งซื้อ
-    const existingIds = new Set(ordersList.map((o) => o.id));
-    for (const lo of localList) {
-      if (!existingIds.has(lo.id)) {
-        ordersList.push(lo);
+        // ซิงค์แคชในเครื่องให้ตรงกับ Supabase เสมอ (ลบออเดอร์ที่ถูกลบออกจากฐานข้อมูลทิ้ง)
+        saveLocalOrders(ordersList);
+        return ordersList;
       }
+    } catch (err) {
+      console.warn("Supabase getOrders error, falling back to local:", err);
     }
   }
 
+  // Fallback เฉพาะกรณีที่ออฟไลน์หรือไม่มี Supabase
+  const localList = getLocalOrders();
   if (userId) {
-    return ordersList.filter((o) => o.user_id === userId);
+    return localList.filter((o) => o.user_id === userId);
   }
-  return ordersList;
+  return localList;
 }
 
 /**
