@@ -55,10 +55,31 @@ function saveLocalOrders(orders: Order[]): void {
   }
 }
 
+function getBookStatusOverrides(): Record<number, boolean> {
+  if (typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem("lampara_book_status_overrides");
+      if (stored) return JSON.parse(stored);
+    } catch {}
+  }
+  return {};
+}
+
+function saveBookStatusOverride(bookId: number, isActive: boolean): void {
+  if (typeof window !== "undefined") {
+    try {
+      const current = getBookStatusOverrides();
+      current[bookId] = isActive;
+      localStorage.setItem("lampara_book_status_overrides", JSON.stringify(current));
+    } catch {}
+  }
+}
+
 /**
  * ดึงแคตตาล็อกหนังสือทั้งหมด
  */
 export async function getBooks(): Promise<Book[]> {
+  const overrides = getBookStatusOverrides();
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase
@@ -68,27 +89,35 @@ export async function getBooks(): Promise<Book[]> {
           authors (id, name, bio),
           categories (id, name, slug)
         `)
-        .eq("is_active", true)
         .order("id", { ascending: true });
 
       if (!error && data && data.length > 0) {
-        return data.map((b: any) => ({
-          ...b,
-          author: b.authors?.name || b.author || "ไม่ระบุผู้แต่ง",
-          category: b.categories?.name || b.category || "ทั่วไป",
-        })) as Book[];
+        return data
+          .map((b: any) => ({
+            ...b,
+            author: b.authors?.name || b.author || "ไม่ระบุผู้แต่ง",
+            category: b.categories?.name || b.category || "ทั่วไป",
+            is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
+          }))
+          .filter((b) => b.is_active !== false) as Book[];
       }
     } catch (err) {
       console.warn("Supabase getBooks fallback:", err);
     }
   }
-  return runtimeBooks.filter((b) => b.is_active !== false);
+  return runtimeBooks
+    .map((b) => ({
+      ...b,
+      is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
+    }))
+    .filter((b) => b.is_active !== false);
 }
 
 /**
  * ดึงหนังสือทั้งหมดรวมทั้งที่ปิดการขาย (สำหรับแอดมิน)
  */
 export async function getAllBooksForAdmin(): Promise<Book[]> {
+  const overrides = getBookStatusOverrides();
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase
@@ -105,13 +134,17 @@ export async function getAllBooksForAdmin(): Promise<Book[]> {
           ...b,
           author: b.authors?.name || b.author || "ไม่ระบุผู้แต่ง",
           category: b.categories?.name || b.category || "ทั่วไป",
+          is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
         })) as Book[];
       }
     } catch {
       // fallback
     }
   }
-  return runtimeBooks;
+  return runtimeBooks.map((b) => ({
+    ...b,
+    is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
+  }));
 }
 
 /**
@@ -740,12 +773,18 @@ export async function toggleBookActive(bookId: number, isActive: boolean): Promi
   if (book) {
     book.is_active = isActive;
   }
+  saveBookStatusOverride(bookId, isActive);
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from("books").update({ is_active: isActive }).eq("id", bookId);
+      const { error } = await supabase.from("books").update({ is_active: isActive }).eq("id", bookId);
+      if (error) {
+        console.warn("Supabase toggleBookActive warning (RLS update policy may be missing):", error);
+      }
       return true;
-    } catch {}
+    } catch (err) {
+      console.warn("Supabase toggleBookActive error:", err);
+    }
   }
   return true;
 }
