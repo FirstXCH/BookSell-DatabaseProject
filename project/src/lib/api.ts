@@ -450,7 +450,7 @@ export async function updateOrderStatus(
                 order_id: orderId,
                 book_id: it.book_id,
                 download_count: 0,
-                max_downloads: 5,
+                max_downloads: 5 * (it.quantity || 1),
                 expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               }))
           : [],
@@ -495,10 +495,10 @@ export async function updateOrderStatus(
             .eq("order_id", orderId);
 
           if (!existingLinks || existingLinks.length === 0) {
-            let items: { book_id: number }[] = [];
+            let items: { book_id: number; quantity?: number }[] = [];
             const { data: dbItems } = await supabase
               .from("order_items")
-              .select("book_id")
+              .select("book_id, quantity")
               .eq("order_id", orderId);
 
             if (dbItems && dbItems.length > 0) {
@@ -513,7 +513,7 @@ export async function updateOrderStatus(
                 order_id: orderId,
                 book_id: it.book_id,
                 download_count: 0,
-                max_downloads: 5,
+                max_downloads: 5 * (it.quantity || 1),
                 expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               }));
 
@@ -523,6 +523,17 @@ export async function updateOrderStatus(
         } catch (linkErr) {
           console.error("Error creating download_links in Supabase:", linkErr);
         }
+
+        // จัดส่งอีเมลยืนยันคำสั่งซื้อพร้อมแนบลิงก์ดาวน์โหลด
+        try {
+          if (typeof window !== "undefined") {
+            fetch("/api/send-order-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ order_id: orderId }),
+            }).catch((e) => console.warn("Email dispatch error:", e));
+          }
+        } catch {}
       }
 
       return true;
@@ -532,6 +543,29 @@ export async function updateOrderStatus(
   }
 
   return true;
+}
+
+/**
+ * ส่งอีเมลยืนยันคำสั่งซื้อและลิงก์ดาวน์โหลดซ้ำ
+ */
+export async function resendOrderEmail(orderId: number): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch("/api/send-order-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_id: orderId }),
+    });
+    const data = await res.json();
+    return {
+      success: data.success || false,
+      message: data.message || "ส่งอีเมลเรียบร้อยแล้ว",
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.message || "เกิดข้อผิดพลาดในการส่งอีเมล",
+    };
+  }
 }
 
 /**

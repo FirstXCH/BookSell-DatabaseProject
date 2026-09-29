@@ -12,8 +12,10 @@ import {
   ArrowRight,
   ShieldCheck,
   RefreshCw,
+  Mail,
+  ExternalLink,
 } from "lucide-react";
-import { getOrder, formatPrice, getDemoCurrentUser, recordDownload } from "@/lib/api";
+import { getOrder, formatPrice, getDemoCurrentUser, recordDownload, resendOrderEmail } from "@/lib/api";
 import type { Order, User as UserType } from "@/lib/types";
 
 export default function CheckoutSuccessPage() {
@@ -38,6 +40,7 @@ function SuccessContent() {
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [downloadNotification, setDownloadNotification] = useState<string | null>(null);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   const fetchOrderData = (silent = false) => {
     if (!silent) setLoading(true);
@@ -180,6 +183,36 @@ function SuccessContent() {
         </div>
       )}
 
+      {/* Email Notification Banner */}
+      {isConfirmed && order && (
+        <div className="mt-5 flex w-full flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-[var(--radius-md)] border border-emerald-500/30 bg-emerald-500/5 p-4 text-left text-xs animate-fade-in">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Mail className="h-5 w-5 shrink-0 text-emerald-400" />
+            <div>
+              <p className="font-semibold text-emerald-300">
+                ระบบจัดส่งลิงก์ดาวน์โหลดไปยัง {order.checkout_email} เรียบร้อยแล้ว
+              </p>
+              <p className="text-[11px] text-[var(--color-muted)] mt-0.5">
+                (คุณสามารถคลิกลิงก์เพื่อเปิดดาวน์โหลดผ่านอีเมล หรือกดจากหน้านี้ได้โดยตรง)
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={resendingEmail}
+            onClick={async () => {
+              setResendingEmail(true);
+              const res = await resendOrderEmail(order.id);
+              alert(res.message);
+              setResendingEmail(false);
+            }}
+            className="btn-outline text-[11px] py-1.5 px-3 shrink-0 text-emerald-400 hover:border-emerald-500 disabled:opacity-50"
+          >
+            {resendingEmail ? "กำลังส่ง..." : "✉️ ส่งอีเมลอีกครั้ง"}
+          </button>
+        </div>
+      )}
+
       {/* Rule Notification Banner (For Professor & Grading) */}
       {!isConfirmed && (
         <div className="mt-6 flex w-full flex-col items-start gap-2 rounded-[var(--radius-md)] border border-amber-500/40 bg-amber-500/5 p-4 text-left text-xs">
@@ -253,6 +286,15 @@ function SuccessContent() {
                       <p className="text-xs text-[var(--color-muted)]">
                         ราคา {formatPrice(item.price_at_time)} • จำนวน {item.quantity} เล่ม
                       </p>
+                      {dlLink?.token && isConfirmed && (
+                        <Link
+                          href={`/download?token=${dlLink.token}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 text-[11px] text-[var(--color-primary)] hover:underline mt-1"
+                        >
+                          <ExternalLink className="h-3 w-3" /> เปิดหน้าดาวน์โหลดผ่าน Token ลิงก์
+                        </Link>
+                      )}
                     </div>
                   </div>
 
