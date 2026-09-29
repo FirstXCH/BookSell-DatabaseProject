@@ -14,12 +14,14 @@ import {
   FolderTree,
   Tag,
   Save,
+  Star,
 } from "lucide-react";
 import {
   getAllBooksForAdmin,
   getCategories,
   getAuthors,
   toggleBookActive,
+  toggleBookFeatured,
   createBook,
   createCategory,
   updateCategory,
@@ -82,6 +84,20 @@ export default function AdminBooksPage() {
       newStatus
         ? `เปิดการขายหนังสือ #${bookId} เรียบร้อยแล้ว`
         : `ปิดการขายหนังสือ #${bookId} แล้ว (Soft Delete)`
+    );
+    setTimeout(() => setNotification(null), 3500);
+  };
+
+  const handleToggleFeatured = async (bookId: number, currentFeatured: boolean) => {
+    const newFeatured = !currentFeatured;
+    await toggleBookFeatured(bookId, newFeatured);
+    setBooks((prev) =>
+      prev.map((b) => (b.id === bookId ? { ...b, featured: newFeatured } : b))
+    );
+    setNotification(
+      newFeatured
+        ? `ตั้งหนังสือ #${bookId} เป็น "หนังสือแนะนำ (Featured)" เรียบร้อยแล้ว (จะแสดงในกล่องแนะนำหน้าแรก)`
+        : `ยกเลิกสถานะแนะนำของหนังสือ #${bookId} แล้ว`
     );
     setTimeout(() => setNotification(null), 3500);
   };
@@ -249,19 +265,20 @@ export default function AdminBooksPage() {
                 <th className="py-3 px-4">หมวดหมู่</th>
                 <th className="py-3 px-4">ราคา</th>
                 <th className="py-3 px-4">สถานะการขาย</th>
+                <th className="py-3 px-4 text-center">แนะนำ (Featured)</th>
                 <th className="py-3 px-4 text-right">เปิด/ปิดการขาย (Soft Delete)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-line)]/60 text-[var(--color-ink)]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[var(--color-muted)]">
+                  <td colSpan={8} className="py-8 text-center text-[var(--color-muted)]">
                     กำลังโหลดข้อมูลหนังสือ...
                   </td>
                 </tr>
               ) : filteredBooks.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[var(--color-muted)]">
+                  <td colSpan={8} className="py-8 text-center text-[var(--color-muted)]">
                     ไม่พบหนังสือที่ค้นหา
                   </td>
                 </tr>
@@ -303,6 +320,21 @@ export default function AdminBooksPage() {
                         >
                           {isActive ? "พร้อมขาย" : "ปิดการขาย"}
                         </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleFeatured(book.id, Boolean(book.featured))}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                            book.featured
+                              ? "bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25"
+                              : "border border-[var(--color-line)] bg-[var(--color-surface-2)] text-[var(--color-muted)] hover:text-amber-300 hover:border-amber-500/40"
+                          }`}
+                          title={book.featured ? "คลิกเพื่อยกเลิกสถานะแนะนำ" : "คลิกเพื่อตั้งเป็นหนังสือแนะนำ (จะไปแสดงใน Hero หน้าแรก)"}
+                        >
+                          <Star className={`h-3 w-3 ${book.featured ? "fill-amber-400 text-amber-400" : ""}`} />
+                          <span>{book.featured ? "★ แนะนำ" : "☆ ตั้งแนะนำ"}</span>
+                        </button>
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <button

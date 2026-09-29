@@ -1,84 +1,20 @@
 import Link from "next/link";
-import { getBooks, formatPrice } from "@/lib/api";
+import { getBooks } from "@/lib/api";
 import { categories } from "@/lib/mock-data";
-import BookCard, { BookCover } from "@/components/BookCard";
-import AddToCartButton from "@/components/AddToCartButton";
-import type { Book } from "@/lib/types";
-import { Sparkles, Download, ShieldCheck, Smartphone, ArrowRight } from "lucide-react";
+import BookCard from "@/components/BookCard";
+import FeaturedHeroShowcase from "@/components/FeaturedHeroShowcase";
+import { Download, ShieldCheck, Smartphone, Sparkles, ArrowRight } from "lucide-react";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   const books = await getBooks();
-  const featured = books.find((b) => b.featured) ?? books[0];
-  const recommended = books.filter((b) => b.id !== featured.id);
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10">
-      {/* Hero : Cinematic Editorial Showcase */}
-      <section className="relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] p-6 sm:p-10 lg:p-12 shadow-[var(--shadow-lg)]">
-        {/* Subtle ambient amber lantern glow behind cover */}
-        <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[var(--color-primary)]/10 blur-3xl" />
-
-        <div className="relative grid grid-cols-1 items-center gap-8 md:grid-cols-[auto,1fr] lg:gap-14">
-          <div className="flex justify-center">
-            <HeroCover book={featured} />
-          </div>
-
-          <div className="flex flex-col justify-center text-left">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="flex items-center gap-1.5 rounded-full bg-[var(--color-primary)]/15 border border-[var(--color-primary)]/30 px-3 py-1 text-[11px] font-semibold tracking-wider uppercase text-[var(--color-primary)]">
-                <Sparkles className="h-3 w-3" />
-                เล่มเด่นประจำสัปดาห์ : ฉบับคัดสรร
-              </span>
-              <span className="text-xs text-[var(--color-muted)] font-mono">
-                {featured.category}
-              </span>
-            </div>
-
-            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-[var(--color-ink)] tracking-tight">
-              {featured.title}
-            </h1>
-
-            <p className="mt-1.5 text-sm sm:text-base font-medium text-[var(--color-muted)]">
-              ประพันธ์โดย <span className="text-[var(--color-ink)]">{featured.author}</span>
-            </p>
-
-            <p className="mt-4 max-w-2xl text-sm sm:text-base leading-relaxed text-[var(--color-ink)]/85">
-              {featured.description}
-            </p>
-
-            {/* Book Specificity Metas */}
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-[var(--color-muted)] border-y border-[var(--color-line)]/70 py-3">
-              <span>ความยาว <strong>{featured.pages} หน้า</strong></span>
-              <span>•</span>
-              <span>ภาษา <strong>{featured.language}</strong></span>
-              <span>•</span>
-              <span>ISBN <strong>{featured.isbn}</strong></span>
-              <span>•</span>
-              <span className="text-[var(--color-primary)] font-semibold">คะแนน {featured.rating} / 5.0</span>
-            </div>
-
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <div>
-                <span className="text-[11px] block uppercase tracking-wider text-[var(--color-muted)]">
-                  ราคา e-Book
-                </span>
-                <span className="font-sans text-2xl sm:text-3xl font-bold text-[var(--color-primary)]">
-                  {formatPrice(featured.price)}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <AddToCartButton book={featured} />
-                <Link
-                  href={`/books/${featured.id}`}
-                  className="btn-outline text-xs sm:text-sm"
-                >
-                  อ่านเรื่องย่อฉบับเต็ม
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero : Interactive Editorial Showcase (Supports Multiple Featured Books & Status Sync) */}
+      <FeaturedHeroShowcase initialBooks={books} />
 
       {/* Proof Strip : Specificity & Trust Signals */}
       <section className="my-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
@@ -119,12 +55,12 @@ export default async function HomePage() {
             เลือกดูตามหมวดหมู่
           </span>
           <Link href="/books" className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1">
-            ดูทั้งหมด 10 เล่ม <ArrowRight className="h-3 w-3" />
+            ดูทั้งหมด {books.length} เล่ม <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => {
-            const count = cat === "ทั้งหมด" ? books.length : books.filter(b => b.category === cat).length;
+            const count = cat === "ทั้งหมด" ? books.length : books.filter((b) => b.category === cat).length;
             return (
               <Link
                 key={cat}
@@ -160,9 +96,9 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        {/* Grid layout for night reader presentation */}
+        {/* Grid layout for catalog items */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
-          {recommended.slice(0, 8).map((book) => (
+          {books.slice(0, 8).map((book) => (
             <BookCard key={book.id} book={book} variant="card" />
           ))}
         </div>
@@ -170,20 +106,3 @@ export default async function HomePage() {
     </div>
   );
 }
-
-function HeroCover({ book }: { book: Book }) {
-  return (
-    <div className="relative group">
-      <div className="absolute -inset-1 rounded-lg bg-[var(--color-primary)]/20 blur-xl opacity-75 group-hover:opacity-100 transition-opacity" />
-      <div className="relative">
-        <BookCover book={book} size="lg" />
-        <div className="absolute -bottom-2 -right-2 rounded-[var(--radius-sm)] bg-[var(--color-primary)] px-3 py-1 text-xs font-bold text-[#141618] shadow-lg">
-          แนะนำอันดับ 1
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-

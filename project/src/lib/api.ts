@@ -55,7 +55,7 @@ function saveLocalOrders(orders: Order[]): void {
   }
 }
 
-function getBookStatusOverrides(): Record<number, boolean> {
+export function getBookStatusOverrides(): Record<number, boolean> {
   if (typeof window !== "undefined") {
     try {
       const stored = localStorage.getItem("lampara_book_status_overrides");
@@ -65,7 +65,7 @@ function getBookStatusOverrides(): Record<number, boolean> {
   return {};
 }
 
-function saveBookStatusOverride(bookId: number, isActive: boolean): void {
+export function saveBookStatusOverride(bookId: number, isActive: boolean): void {
   if (typeof window !== "undefined") {
     try {
       const current = getBookStatusOverrides();
@@ -75,11 +75,32 @@ function saveBookStatusOverride(bookId: number, isActive: boolean): void {
   }
 }
 
+export function getBookFeaturedOverrides(): Record<number, boolean> {
+  if (typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem("lampara_book_featured_overrides");
+      if (stored) return JSON.parse(stored);
+    } catch {}
+  }
+  return {};
+}
+
+export function saveBookFeaturedOverride(bookId: number, featured: boolean): void {
+  if (typeof window !== "undefined") {
+    try {
+      const current = getBookFeaturedOverrides();
+      current[bookId] = featured;
+      localStorage.setItem("lampara_book_featured_overrides", JSON.stringify(current));
+    } catch {}
+  }
+}
+
 /**
  * ดึงแคตตาล็อกหนังสือทั้งหมด
  */
 export async function getBooks(): Promise<Book[]> {
   const overrides = getBookStatusOverrides();
+  const featOverrides = getBookFeaturedOverrides();
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase
@@ -97,6 +118,7 @@ export async function getBooks(): Promise<Book[]> {
             ...b,
             author: b.authors?.name || b.author || "ไม่ระบุผู้แต่ง",
             category: b.categories?.name || b.category || "ทั่วไป",
+            featured: featOverrides[b.id] !== undefined ? featOverrides[b.id] : Boolean(b.featured),
             is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
           }))
           .filter((b) => b.is_active !== false) as Book[];
@@ -108,6 +130,7 @@ export async function getBooks(): Promise<Book[]> {
   return runtimeBooks
     .map((b) => ({
       ...b,
+      featured: featOverrides[b.id] !== undefined ? featOverrides[b.id] : Boolean(b.featured),
       is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
     }))
     .filter((b) => b.is_active !== false);
@@ -118,6 +141,7 @@ export async function getBooks(): Promise<Book[]> {
  */
 export async function getAllBooksForAdmin(): Promise<Book[]> {
   const overrides = getBookStatusOverrides();
+  const featOverrides = getBookFeaturedOverrides();
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase
@@ -134,6 +158,7 @@ export async function getAllBooksForAdmin(): Promise<Book[]> {
           ...b,
           author: b.authors?.name || b.author || "ไม่ระบุผู้แต่ง",
           category: b.categories?.name || b.category || "ทั่วไป",
+          featured: featOverrides[b.id] !== undefined ? featOverrides[b.id] : Boolean(b.featured),
           is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
         })) as Book[];
       }
@@ -143,6 +168,7 @@ export async function getAllBooksForAdmin(): Promise<Book[]> {
   }
   return runtimeBooks.map((b) => ({
     ...b,
+    featured: featOverrides[b.id] !== undefined ? featOverrides[b.id] : Boolean(b.featured),
     is_active: overrides[b.id] !== undefined ? overrides[b.id] : (b.is_active !== false),
   }));
 }
@@ -784,6 +810,30 @@ export async function toggleBookActive(bookId: number, isActive: boolean): Promi
       return true;
     } catch (err) {
       console.warn("Supabase toggleBookActive error:", err);
+    }
+  }
+  return true;
+}
+
+/**
+ * สลับสถานะหนังสือแนะนำ (Featured)
+ */
+export async function toggleBookFeatured(bookId: number, featured: boolean): Promise<boolean> {
+  const book = runtimeBooks.find((b) => b.id === bookId);
+  if (book) {
+    book.featured = featured;
+  }
+  saveBookFeaturedOverride(bookId, featured);
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from("books").update({ featured }).eq("id", bookId);
+      if (error) {
+        console.warn("Supabase toggleBookFeatured warning:", error);
+      }
+      return true;
+    } catch (err) {
+      console.warn("Supabase toggleBookFeatured error:", err);
     }
   }
   return true;
