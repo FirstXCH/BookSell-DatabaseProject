@@ -270,7 +270,7 @@ function SuccessContent() {
                         className="btn-primary shrink-0 text-xs py-2 px-3.5 flex items-center gap-1.5"
                       >
                         <Download className="h-3.5 w-3.5" />
-                        {downloadingId === item.book_id ? "กำลังเตรียมไฟล์..." : `ดาวน์โหลด (${currentDl}/{maxDl})`}
+                        {downloadingId === item.book_id ? "กำลังเตรียมไฟล์..." : `ดาวน์โหลด (${currentDl}/${maxDl})`}
                       </button>
                     )
                   ) : (
