@@ -36,12 +36,12 @@ export default function AdminOrdersPage() {
   }, []);
 
   const handleStatusChange = async (orderId: number, status: "Confirmed" | "Cancelled" | "Pending") => {
+    setInspectOrder(null); // ปิดหน้าต่าง Popup ทันทีที่กด ไม่ต้องรอโหลด
     setIsUpdating(true);
     try {
       await updateOrderStatus(orderId, status);
       setNotification(`อัปเดตคำสั่งซื้อ #${orderId} เป็นสถานะ "${status}" เรียบร้อยแล้ว`);
       await loadOrders();
-      setInspectOrder(null); // ปิดหน้าต่าง Popup ตรวจสอบทันที
     } catch (err) {
       console.error("Error updating order status:", err);
     } finally {
@@ -303,14 +303,6 @@ export default function AdminOrdersPage() {
 
             {/* Action buttons inside modal */}
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--color-line)]">
-              <button
-                type="button"
-                disabled={isUpdating}
-                onClick={() => setInspectOrder(null)}
-                className="btn-outline text-xs px-3 py-2 text-[var(--color-muted)] hover:text-[var(--color-ink)]"
-              >
-                ปิดหน้าต่าง
-              </button>
               {inspectOrder.status !== "Cancelled" && (
                 <button
                   type="button"
